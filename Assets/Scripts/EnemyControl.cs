@@ -67,6 +67,7 @@ public class EnemyControl : MonoBehaviour
 		float.TryParse (Params [4], out walkingSpeed);
 	}
 
+
 	void Update ()
 	{
 		if (walking)
@@ -85,7 +86,7 @@ public class EnemyControl : MonoBehaviour
 		RaycastHit2D[] hits = Physics2D.RaycastAll (transform.position, Vector2.down, 0.4f);
 		bool hasBlockAhead = false;
 		foreach (RaycastHit2D hit in hits) {
-			if (hit.collider != null && hit.collider.gameObject.tag == "Tower") {
+			if (hit.collider != null && hit.collider.gameObject.tag == "Tower" && hit.transform.parent.tag != "ProductionSlot") {
 				hasBlockAhead = true;
 			}
 		}

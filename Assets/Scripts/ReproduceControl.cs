@@ -47,7 +47,9 @@ public class ReproduceControl : MonoBehaviour
 				//set range image to false
 				newTower.transform.GetChild (0).gameObject.SetActive (false);
 				GameManager.GM.ProductionStarters [siblingIndex].SetActive (true);
+				GameManager.GM.AddCoin (0);
 				startRe = false;
+				ReproductionTarget.GetComponent<PlayerControl> ().Engaged = false;
 			}
 		}
 		// Set target Reproduction Bar
@@ -60,6 +62,7 @@ public class ReproduceControl : MonoBehaviour
 	public void StopReproduce ()
 	{
 		startRe = false;
+		ReproductionTarget.GetComponent<PlayerControl> ().Engaged = false;
 		float percent = targetHealth / targetMaxHealth;
 		TargetSR.transform.localScale = new Vector3 (percent, TargetSR.transform.localScale.y, TargetSR.transform.localScale.z);
 		TargetSR.transform.localPosition = new Vector3 ((1f - percent) * -4.5f, TargetSR.transform.localPosition.y, TargetSR.transform.localPosition.z);
@@ -91,9 +94,9 @@ public class ReproduceControl : MonoBehaviour
 		productionCoin = TowerControl.TowerInfoToRepCoin (ReproductionTarget.GetComponent<TowerControl> ().TI);
 		// Active the starter
 		GameManager.GM.ProductionStarters [siblingIndex].transform.GetChild (1).GetComponent<Text> ().text = productionCoin.ToString ();
-		if (!GameManager.GM.hasEnoughCoin (productionCoin))
-			GameManager.GM.ProductionStarters [siblingIndex].transform.GetChild (1).GetComponent<Text> ().color = Color.red;
+
 		GameManager.GM.ProductionStarters [siblingIndex].SetActive (true);
+		GameManager.GM.AddCoin (0);
 	}
 
 	public void tryStart ()
@@ -109,5 +112,12 @@ public class ReproduceControl : MonoBehaviour
 		GameManager.GM.ProductionStarters [siblingIndex].SetActive (false);
 		GameManager.GM.AddCoin (-productionCoin);
 		startRe = true;
+		ReproductionTarget.GetComponent<PlayerControl> ().Engaged = true;
+
+	}
+
+	public bool isReproducing ()
+	{
+		return startRe;
 	}
 }

@@ -38,21 +38,19 @@ public class TowerControl : MonoBehaviour
 
 	void Start ()
 	{
+		TowerAnimator = TowerSpriteAndAnimation.GetComponent<Animator> ();
+
 		setParam ();
 		init ();
 	}
 
 	void init ()
 	{
-		RangeCircleImage.transform.localScale = new Vector3 (Range_Range, Range_Range, 1f);
 		thisColor = HealthBar.GetComponent<SpriteRenderer> ().color;
 		AttackCD = maxAttackCD;
 		Health = maxHealth;
-		Armor = maxArmor;
-		AttackPower = maxAttackPower;
-		TowerAnimator = TowerSpriteAndAnimation.GetComponent<Animator> ();
 		TI = new TowerInfo (TT, TowerLevel, Health);
-		TowerAnimator.SetFloat ("AttackSpeed", 1f / maxAttackCD);
+
 	}
 
 	void setParam ()
@@ -76,6 +74,10 @@ public class TowerControl : MonoBehaviour
 		float.TryParse (Params [2], out maxArmor);
 		float.TryParse (Params [3], out maxAttackCD);
 		float.TryParse (Params [4], out Range_Range);
+		RangeCircleImage.transform.localScale = new Vector3 (Range_Range, Range_Range, 1f);
+		Armor = maxArmor;
+		AttackPower = maxAttackPower;
+		TowerAnimator.SetFloat ("AttackSpeed", 1f / maxAttackCD);
 	}
 
 	void Update ()
@@ -302,14 +304,14 @@ public class TowerControl : MonoBehaviour
 
 	public static int TowerInfoToRepCoin (TowerInfo ti)
 	{
-		int baseRepCoin = 5;
+		int baseRepCoin = 10;
 		baseRepCoin *= ti.level;
 		return baseRepCoin;
 	}
 
 	public float thisTowerToRepTime ()
 	{
-		float baseTime = 10f;
+		float baseTime = 12f;
 		switch (TT) {
 		case TowerType.Defense:
 		case TowerType.Heal:
@@ -350,6 +352,8 @@ public class TowerControl : MonoBehaviour
 	public void setFunctioning (bool stop)
 	{
 		stopFunctioning = stop;
+		if (stopFunctioning)
+			TowerAnimator.SetBool ("StayDull", true);
 	}
 
 	public bool isFunctioning ()

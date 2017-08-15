@@ -29,6 +29,8 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	{
 		if (Engaged)
 			return;
+//		if (transform.parent.gameObject.tag == "ProductionSlot" && transform.parent.gameObject.GetComponent<ReproduceControl> ().isReproducing ())
+//			return;
 		towerBeingDragged = gameObject;
 		StartPosition = transform.position;
 		StartParent = transform.parent;
@@ -123,7 +125,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
 	void OnMouseOver ()
 	{
-		if (!isDraggedOver)
+		if (!isDraggedOver || transform.parent.tag == "ProductionSlot")
 			return;
 		transform.localScale = new Vector3 (1f, 1f, 1f);
 		int coin = TowerControl.TowerInfoToMergeCoin (GetComponent<TowerControl> ().TI);

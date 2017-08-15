@@ -95,7 +95,7 @@ public class SmallEnemyControl : MonoBehaviour
 			transform.Translate (Vector3.down * Time.deltaTime * walkingSpeed, Space.World);
 			transform.rotation = Quaternion.identity;
 			foreach (Collider2D hit in hits) {
-				if (hit != null && hit.gameObject.tag == "Tower" && hit.gameObject.GetComponent<TowerControl> ().TT != TowerType.Defense) {
+				if (hit != null && hit.gameObject.tag == "Tower" && hit.gameObject.GetComponent<TowerControl> ().TT != TowerType.Defense && hit.transform.parent.tag != "ProductionSlot") {
 					float dist = Vector3.Distance (transform.position, hit.transform.position);
 					if (dist < minRange) {
 						minRange = dist;

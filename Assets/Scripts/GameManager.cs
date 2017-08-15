@@ -26,7 +26,10 @@ public class GameManager : MonoBehaviour
 	public GameObject TargetedEnemy;
 	public GameObject Level1TankTower;
 	public GameObject Level1HealTower;
+	public Text PlayerHealthText;
+	public GameObject GameOverHolder;
 
+	private int PlayerHealth = 1;
 	private int slotNum = 0;
 
 	void Awake ()
@@ -44,6 +47,7 @@ public class GameManager : MonoBehaviour
 		Coins = 0;
 		AddCoin (startCoin);
 		PlayerDesignNumberStrs = TowerAndEnemyNum.text.Split ("\n" [0]);
+		PlayerHealthText.text = PlayerHealth.ToString ();
 
 	}
 
@@ -53,6 +57,11 @@ public class GameManager : MonoBehaviour
 			return true;
 		StartCoroutine (stopShaking ());
 		return false;
+	}
+
+	public bool hasEnoughCoin_Plain (int tryToSpend)
+	{
+		return tryToSpend <= Coins;
 	}
 
 	IEnumerator stopShaking ()
@@ -69,7 +78,7 @@ public class GameManager : MonoBehaviour
 		// Each time coin change, Check stuff
 		for (int i = 0; i < ProductionStarters.Length; i++) {
 			if (ProductionStarters [i].activeSelf) {
-				if (hasEnoughCoin (Slots [i].GetComponent<ReproduceControl> ().productionCoin)) {
+				if (hasEnoughCoin_Plain (Slots [i].GetComponent<ReproduceControl> ().productionCoin)) {
 					ProductionStarters [i].transform.GetChild (1).GetComponent<Text> ().color = Color.white;
 				} else {
 					ProductionStarters [i].transform.GetChild (1).GetComponent<Text> ().color = Color.red;
@@ -92,16 +101,16 @@ public class GameManager : MonoBehaviour
 		if (!hasEnoughCoin (UnlockNextSlotCoin [slotNum]) || slotNum > 5)
 			return;
 		if (slotNum == 0) {
-			int slotIndex = Random.Range (25, 30);
-			while (Slots [slotNum].transform.childCount != 0) {
-				slotIndex = Random.Range (25, 30);
+			int slotIndex = 29;
+			while (Slots [slotIndex].transform.childCount != 0) {
+				slotIndex--;
 			}
 			Instantiate (Level1TankTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
 		}
 		if (slotNum == 1) {
-			int slotIndex = Random.Range (15, 20);
-			while (Slots [slotNum].transform.childCount != 0) {
-				slotIndex = Random.Range (15, 20);
+			int slotIndex = 19;
+			while (Slots [slotIndex].transform.childCount != 0) {
+				slotIndex--;
 			}
 			Instantiate (Level1HealTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
 		}
@@ -116,7 +125,7 @@ public class GameManager : MonoBehaviour
 		for (int i = 0; i < ProductionLocks.Length; i++) {
 			ProductionLocks [i].GetComponentInChildren<Text> ().text = UnlockNextSlotCoin [slotNum].ToString ();
 		}
-
+		PlayerHealth++;
 
 	}
 
@@ -131,6 +140,20 @@ public class GameManager : MonoBehaviour
 			} else
 				TargetedEnemy = null;
 		}
+	}
+
+	public void HarmPlayer ()
+	{
+		PlayerHealth--;
+		PlayerHealthText.text = PlayerHealth.ToString ();
+		if (PlayerHealth <= 0)
+			GameOver ();
+	}
+
+	void GameOver ()
+	{
+		GameOverHolder.SetActive (true);
+		Time.timeScale = 0f;
 	}
 
 	public void Restart ()

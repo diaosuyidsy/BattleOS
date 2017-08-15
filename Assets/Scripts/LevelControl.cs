@@ -12,6 +12,8 @@ public class LevelControl : MonoBehaviour
 	public GameObject FlyEnemyPrefab;
 	public float spawnIntervals = 5f;
 
+	public int epoch = 0;
+
 	void Awake ()
 	{
 		LC = this;
@@ -30,6 +32,8 @@ public class LevelControl : MonoBehaviour
 	IEnumerator spawn (float time)
 	{
 		yield return new WaitForSeconds (time);
+		epoch++;
+		Debug.Log (epoch);
 		int randomIndex = Random.Range (0, EnemySpawns.Length);
 		if (spawnIntervals >= 2.5f)
 			spawnIntervals -= 0.05f;
