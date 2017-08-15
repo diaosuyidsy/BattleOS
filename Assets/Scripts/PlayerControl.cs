@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -15,6 +16,14 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	Transform StartParent;
 	GameObject shadowImage;
 	GameObject draggedOver;
+	bool startClicking = false;
+	float clickCD = 0f;
+
+	void Update ()
+	{
+		if (startClicking)
+			clickCD += Time.deltaTime;
+	}
 
 	public void OnBeginDrag (PointerEventData _EventData)
 	{
@@ -29,7 +38,8 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	public void OnDrag (PointerEventData _EventData)
 	{
 		if (Engaged) {
-			Destroy (shadowImage);
+			if (shadowImage != null)
+				Destroy (shadowImage);
 			return;
 		}
 		if (_EventData.pointerEnter != gameObject && _EventData.pointerEnter.tag == "Tower") {
@@ -56,7 +66,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		// TryMerge
 		// Else is just a simple Position change
 		if (minSlot != StartParent && minSlot.childCount > 0) {
-			if (TryMerge (minSlot))
+			if (minSlot.gameObject.tag != "ProductionSlot" && TryMerge (minSlot))
 				Destroy (gameObject);
 			else {
 				transform.parent = StartParent;
@@ -65,36 +75,50 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		} else {
 			transform.parent = minSlot;
 			transform.localPosition = Vector3.zero;
-			if (minSlot.gameObject.tag == "ProductionSlot") {
-				minSlot.gameObject.SendMessage ("StartReproduce");
+			if (StartParent.tag == "ProductionSlot") {
+				StartParent.gameObject.SendMessage ("StopReproduce");
 			}
+			if (minSlot.gameObject.tag == "ProductionSlot") {
+				if (!minSlot.gameObject.GetComponent<ReproduceControl> ().Locked)
+					minSlot.gameObject.SendMessage ("StartReproduce");
+				else {
+					transform.parent = StartParent;
+					transform.localPosition = Vector3.zero;
+				}
+			} 
 		}
-
+		GameManager.GM.ConsumeCoinHolder.SetActive (false);
 		towerBeingDragged = null;
 		draggedOver = null;
 	}
 
 	void OnMouseDown ()
 	{
-		if (GameManager.GM.selectedTower == null) {
-			GameManager.GM.selectedTower = gameObject;
-			towerRangeImage.SetActive (true);
-		} else if (GameManager.GM.selectedTower == gameObject) {
-			GameManager.GM.selectedTower = null;
-			towerRangeImage.SetActive (false);
-		} else {
-			GameManager.GM.selectedTower.GetComponent<PlayerControl> ().towerRangeImage.SetActive (false);
-			GameManager.GM.selectedTower = gameObject;
-			towerRangeImage.SetActive (true);
-		}
-
+		startClicking = true;
 	}
 
-	void OnMouseEnter ()
+	void OnMouseUp ()
 	{
-		if (!isDraggedOver)
-			return;
-		transform.localScale = new Vector3 (1f, 1f, 1f);
+		startClicking = false;
+		if (clickCD <= 0.15f) {
+			// It's a click
+			if (gameObject.transform.parent.tag == "ProductionSlot") {
+				gameObject.transform.parent.gameObject.GetComponent<ReproduceControl> ().tryStart ();
+				return;
+			}
+			if (GameManager.GM.selectedTower == null) {
+				GameManager.GM.selectedTower = gameObject;
+				towerRangeImage.SetActive (true);
+			} else if (GameManager.GM.selectedTower == gameObject) {
+				GameManager.GM.selectedTower = null;
+				towerRangeImage.SetActive (false);
+			} else {
+				GameManager.GM.selectedTower.GetComponent<PlayerControl> ().towerRangeImage.SetActive (false);
+				GameManager.GM.selectedTower = gameObject;
+				towerRangeImage.SetActive (true);
+			}
+		}
+		clickCD = 0f;
 	}
 
 	void OnMouseOver ()
@@ -102,6 +126,9 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		if (!isDraggedOver)
 			return;
 		transform.localScale = new Vector3 (1f, 1f, 1f);
+		int coin = TowerControl.TowerInfoToMergeCoin (GetComponent<TowerControl> ().TI);
+		GameManager.GM.ConsumeCoinHolder.GetComponentInChildren<Text> ().text = "-" + coin.ToString ();
+		GameManager.GM.ConsumeCoinHolder.SetActive (true);
 	}
 
 	void OnMouseExit ()
@@ -109,6 +136,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		if (!isDraggedOver)
 			return;
 		transform.localScale = new Vector3 (0.5f, 0.5f, 1f);
+		GameManager.GM.ConsumeCoinHolder.SetActive (false);
 		isDraggedOver = false;
 	}
 
