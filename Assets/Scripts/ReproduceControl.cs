@@ -12,7 +12,6 @@ public class ReproduceControl : MonoBehaviour
 	public GameObject ProductionStarterPrefab;
 	public int productionCoin;
 
-
 	private float maxProduceTime;
 	private float pTime;
 	private GameObject ReproductionTarget;

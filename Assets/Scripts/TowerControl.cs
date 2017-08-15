@@ -309,7 +309,7 @@ public class TowerControl : MonoBehaviour
 
 	public float thisTowerToRepTime ()
 	{
-		float baseTime = 15f;
+		float baseTime = 10f;
 		switch (TT) {
 		case TowerType.Defense:
 		case TowerType.Heal:

@@ -18,9 +18,7 @@ public class FlyEnemyControl : MonoBehaviour
 	public int EnemyLevel = 1;
 	public GameObject TargetedImage;
 
-	private float AttackCD;
 	public float Health;
-	private float AttackPower;
 	private float Armor;
 	private Color thisColor;
 	private bool beingTargeted = false;
@@ -28,10 +26,8 @@ public class FlyEnemyControl : MonoBehaviour
 	void Start ()
 	{
 		setParam ();
-		AttackCD = maxAttackCD;
 		Health = maxHealth;
 		Armor = maxArmor;
-		AttackPower = maxAttackPower;
 		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;
 	}
 

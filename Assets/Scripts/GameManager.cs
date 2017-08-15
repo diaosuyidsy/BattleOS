@@ -24,6 +24,8 @@ public class GameManager : MonoBehaviour
 	public Sprite[] EnemySprite;
 	public Sprite[] SmallEnemySprite;
 	public GameObject TargetedEnemy;
+	public GameObject Level1TankTower;
+	public GameObject Level1HealTower;
 
 	private int slotNum = 0;
 
@@ -90,7 +92,18 @@ public class GameManager : MonoBehaviour
 		if (!hasEnoughCoin (UnlockNextSlotCoin [slotNum]) || slotNum > 5)
 			return;
 		if (slotNum == 0) {
-			
+			int slotIndex = Random.Range (25, 30);
+			while (Slots [slotNum].transform.childCount != 0) {
+				slotIndex = Random.Range (25, 30);
+			}
+			Instantiate (Level1TankTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
+		}
+		if (slotNum == 1) {
+			int slotIndex = Random.Range (15, 20);
+			while (Slots [slotNum].transform.childCount != 0) {
+				slotIndex = Random.Range (15, 20);
+			}
+			Instantiate (Level1HealTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
 		}
 		AddCoin (-UnlockNextSlotCoin [slotNum]);
 		slotNum++;
