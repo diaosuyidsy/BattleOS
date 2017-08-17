@@ -41,11 +41,12 @@ public class ReproduceControl : MonoBehaviour
 			// Produce a tower if no tower in front
 			if (SlotInFront.transform.childCount == 0) {
 				GameObject newTower = (GameObject)Instantiate (ReproductionTarget, SlotInFront.transform);
-				newTower.GetComponent<TowerControl> ().HealthBar.GetComponent<SpriteRenderer> ().sprite = GreenBar;
+				TowerControl TC = newTower.GetComponent<TowerControl > ();
+				TC.HealthBar.GetComponent<SpriteRenderer> ().sprite = GreenBar;
 				//set range image to false
 				newTower.transform.GetChild (0).gameObject.SetActive (false);
 				newTower.GetComponent<PlayerControl> ().Engaged = false;
-				newTower.GetComponent<TowerControl> ().TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().color = Color.white;
+				TC.TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().color = Color.white;
 
 				SpriteRenderer[] sprites = newTower.GetComponentsInChildren<SpriteRenderer> ();
 				foreach (SpriteRenderer sprite in sprites) {
@@ -80,19 +81,20 @@ public class ReproduceControl : MonoBehaviour
 		maxProduceTime = 0f;
 		pTime = 0f;
 		ReproductionTarget = transform.GetChild (0).gameObject;
+		TowerControl TC = ReproductionTarget.GetComponent<TowerControl> ();
 
-		ReproductionTarget.GetComponent<TowerControl> ().setFunctioning (true);
+		TC.setFunctioning (true);
 		ReproductionTarget.transform.GetChild (0).gameObject.SetActive (false);
 		// Set up Reproduction Bar
-		GameObject targetHB = ReproductionTarget.GetComponent<TowerControl> ().HealthBar;
+		GameObject targetHB = TC.HealthBar;
 		TargetSR = targetHB.GetComponent<SpriteRenderer> ();
 		TargetSR.sprite = RPsprite;
 		targetHB.transform.localScale = new Vector3 (0f, 1f, 1f);
 		targetHB.transform.localPosition = new Vector3 (-4.5f, 0, -2f);
 		// Set up max Reproduce time
-		maxProduceTime = ReproductionTarget.GetComponent<TowerControl> ().thisTowerToRepTime ();
+		maxProduceTime = TC.thisTowerToRepTime ();
 		// Set up need coin for production
-		productionCoin = ReproductionTarget.GetComponent<TowerControl> ().thisTowerToRepCoin ();
+		productionCoin = TC.thisTowerToRepCoin ();
 		// Active the starter
 		GameManager.GM.ProductionStarters [siblingIndex].transform.GetChild (1).GetComponent<Text> ().text = productionCoin.ToString ();
 

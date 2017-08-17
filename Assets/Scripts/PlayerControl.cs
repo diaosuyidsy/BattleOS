@@ -110,7 +110,6 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 				}
 				minSlot.gameObject.GetComponent<ReproduceControl> ().StartReproduce ();
 			}
-
 		} 
 		GameManager.GM.ConsumeCoinHolder.SetActive (false);
 		towerBeingDragged = null;

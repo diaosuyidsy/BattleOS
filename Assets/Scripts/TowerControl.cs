@@ -109,7 +109,20 @@ public class TowerControl : MonoBehaviour
 		case TowerType.Heal:
 			Heal ();
 			break;
+		case TowerType.Missile:
+			MissileAttack ();
+			break;
 		}
+
+	}
+
+
+
+	void OnDrawGizmosSelected ()
+	{
+		// Display the explosion radius when selected
+		Gizmos.color = Color.red;
+		Gizmos.DrawLine (transform.position, new Vector3 (transform.position.x, transform.position.y + Range_Range));
 	}
 
 	void Heal ()
@@ -164,6 +177,30 @@ public class TowerControl : MonoBehaviour
 		GameObject.Destroy (myLine, duration);
 	}
 
+	void MissileAttack ()
+	{
+		RaycastHit2D[] hits = Physics2D.RaycastAll (transform.position, Vector2.up, Range_Range);
+		bool hasEnemy = false;
+		foreach (RaycastHit2D hit in hits) {
+			if (hit.collider != null && hit.collider.gameObject.tag == "Enemy") {
+				hasEnemy = true;
+			}
+		}
+		if (hasEnemy) {
+			if (Mathf.Abs (AttackCD - 0.117f * maxAttackCD) <= 0.01f) {
+				TowerAnimator.SetBool ("StartAttack", true);
+			}
+			AttackCD -= Time.deltaTime;
+		} else {
+			TowerAnimator.SetBool ("StartAttack", false);
+		}
+		if (AttackCD <= 0f) {
+			GameObject bullet = (GameObject)Instantiate (RangeBulletPrefab, hitPos.position, Quaternion.identity);
+			bullet.GetComponent<RangeBulletControl> ().SetTarget (null, AttackPower, true);
+			AttackCD = maxAttackCD;
+		}
+	}
+
 	void RangeAttacking ()
 	{
 		bool hasEnemy = false;
@@ -214,7 +251,7 @@ public class TowerControl : MonoBehaviour
 			TowerAnimator.SetBool ("StartAttack", true);
 
 			GameObject bullet = (GameObject)Instantiate (RangeBulletPrefab, hitPos.position, Quaternion.identity);
-			bullet.GetComponent<RangeBulletControl> ().SetTarget (RangeTarget, AttackPower);
+			bullet.GetComponent<RangeBulletControl> ().SetTarget (RangeTarget, AttackPower, false);
 			AttackCD = maxAttackCD;
 		}
 	}
@@ -408,8 +445,8 @@ public class TowerControl : MonoBehaviour
 	{
 		stopFunctioning = stop;
 		if (stopFunctioning) {
-//			GetComponentInChildren <Animator> ().SetBool ("StayDull", true);
-//			GetComponentInChildren<Animator> ().stop;
+			if (TT == TowerType.Range)
+				GetComponentInChildren <Animator> ().SetBool ("StayDull", true);
 			TowerSpriteAndAnimation.transform.rotation = Quaternion.identity;
 		}
 	}

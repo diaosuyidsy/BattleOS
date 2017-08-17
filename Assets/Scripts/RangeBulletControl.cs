@@ -9,11 +9,12 @@ public class RangeBulletControl : MonoBehaviour
 	private bool targetSet;
 	private GameObject target;
 	private float attackdmg;
+	bool straght = false;
 	
 	// Update is called once per frame
 	void Update ()
 	{
-		if (targetSet) {
+		if (targetSet && !straght) {
 			if (target == null) {
 				Destroy (gameObject);
 				return;
@@ -28,20 +29,23 @@ public class RangeBulletControl : MonoBehaviour
 			if (Vector3.Distance (transform.position, playerPos) >= 0f) {
 				transform.position += transform.up * MoveSpeed * Time.deltaTime;
 			}
-		}	
+		}
+		if (targetSet && straght)
+			transform.position += transform.up * MoveSpeed * Time.deltaTime;
 	}
 
-	public void SetTarget (GameObject go, float dmg)
+	public void SetTarget (GameObject go, float dmg, bool straight)
 	{
 		target = go;
 		attackdmg = dmg;
+		straght = straight;
 		targetSet = true;
 	}
 
 	void OnTriggerEnter2D (Collider2D other)
 	{
 		if (other.gameObject.tag == "Enemy") {
-			target.SendMessage ("TakeDamage", attackdmg);
+			other.gameObject.SendMessage ("TakeDamage", attackdmg);
 			Destroy (gameObject);
 		}
 
