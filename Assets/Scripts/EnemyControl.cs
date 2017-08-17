@@ -29,12 +29,18 @@ public class EnemyControl : MonoBehaviour
 
 	void Start ()
 	{
+		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;
+
+	}
+
+	public void setLevel (int level)
+	{
+		EnemyLevel = level;
 		setParam ();
 		AttackCD = maxAttackCD;
 		Health = maxHealth;
 		Armor = maxArmor;
 		AttackPower = maxAttackPower;
-		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;
 		EnemyAnimator = SpriteAndAnimation.GetComponent<Animator> ();
 		EnemyAnimator.SetFloat ("WalkingSpeed", walkingSpeed);
 	}
@@ -57,7 +63,7 @@ public class EnemyControl : MonoBehaviour
 			SpriteAndAnimation.GetComponent<SpriteRenderer> ().color = new Color (253f / 255f, 132f / 255f, 132f / 255f);
 			break;
 		}
-		int baseIndex = 9;
+		int baseIndex = 12;
 		baseIndex += (EnemyLevel - 1);
 		string[] Params = GameManager.GM.TowerAndEnemyNum.text.Split ("\n" [0]) [baseIndex].Split (' ');
 		float.TryParse (Params [0], out maxHealth);
@@ -65,6 +71,7 @@ public class EnemyControl : MonoBehaviour
 		float.TryParse (Params [2], out maxArmor);
 		float.TryParse (Params [3], out maxAttackCD);
 		float.TryParse (Params [4], out walkingSpeed);
+		int.TryParse (Params [Params.Length - 1], out Coins);
 	}
 
 
@@ -119,6 +126,7 @@ public class EnemyControl : MonoBehaviour
 			GameObject popupCoin = (GameObject)Instantiate (PopupCoinprefab, Camera.main.WorldToScreenPoint (transform.position), Quaternion.identity, GameObject.Find ("MainCanvas").transform);
 			popupCoin.GetComponent<PopupCoin> ().setText (Coins);
 			GameManager.GM.AddCoin (Coins);
+			GameManager.GM.onScore (EnemyLevel);
 			Destroy (gameObject);
 		}
 	}

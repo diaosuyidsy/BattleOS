@@ -24,6 +24,7 @@ public class TowerControl : MonoBehaviour
 	public GameObject RangeCircleImage;
 	public GameObject HealingEffect;
 	public Text LevelText;
+	public SpriteRenderer[] EnterRepoSprites;
 
 	private float AttackCD;
 	public float Health;
@@ -58,13 +59,31 @@ public class TowerControl : MonoBehaviour
 		LevelText.text = TowerLevel.ToString ();
 		int baseIndex = 0;
 		switch (TT) {
-		case TowerType.Defense:
+		case TowerType.Tank:
+			if (TowerLevel != 1) {
+				TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.MeleeTowerSprites [TowerLevel - 2];
+			}
 			break;
 		case TowerType.Range:
-			baseIndex = 3;
+			if (TowerLevel != 1) {
+				TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.RangeTowerSprites [TowerLevel - 2];
+			}
+			baseIndex = 4;
 			break;
 		case TowerType.Heal:
-			baseIndex = 6;
+			if (TowerLevel != 1) {
+				for (int i = 0; i < TowerLevel - 1; i++) {
+					EnterRepoSprites [i].gameObject.SetActive (true);
+				}
+			}
+			foreach (SpriteRenderer sr in EnterRepoSprites) {
+				if (sr.gameObject.activeSelf) {
+					Color c = sr.color;
+					c.a = 1f;
+					sr.color = c;
+				}
+			}
+			baseIndex = 8;
 			break;
 		}
 		baseIndex += (TowerLevel - 1);
@@ -85,7 +104,7 @@ public class TowerControl : MonoBehaviour
 		if (stopFunctioning)
 			return;
 		switch (TT) {
-		case TowerType.Defense:
+		case TowerType.Tank:
 			meleeAttacking ();
 			break;
 		case TowerType.Range:
@@ -95,7 +114,6 @@ public class TowerControl : MonoBehaviour
 			Heal ();
 			break;
 		}
-
 	}
 
 	void Heal ()
@@ -151,7 +169,7 @@ public class TowerControl : MonoBehaviour
 		bool hasEnemy = false;
 		GameObject minEnemy = null;
 
-		if (GameManager.GM.TargetedEnemy != null && Vector3.Distance (transform.position, GameManager.GM.TargetedEnemy.transform.position) <= Range_Range) {
+		if (GameManager.GM.TargetedEnemy != null && Vector2.Distance (transform.position, GameManager.GM.TargetedEnemy.transform.position) <= Range_Range) {
 			RangeTarget = GameManager.GM.TargetedEnemy;
 			hasEnemy = true;
 		} else {
@@ -159,7 +177,7 @@ public class TowerControl : MonoBehaviour
 			float minRange = 100f;
 			foreach (Collider2D hit in hits) {
 				if (hit != null && hit.gameObject.tag == "Enemy") {
-					float dist = Vector3.Distance (transform.position, hit.transform.position);
+					float dist = Vector2.Distance (transform.position, hit.transform.position);
 					if (dist < minRange) {
 						minRange = dist;
 						minEnemy = hit.gameObject;
@@ -173,7 +191,7 @@ public class TowerControl : MonoBehaviour
 			Engaged = true;
 			TowerAnimator.SetBool ("StayDull", true);
 			// Do not switch target if current target is alive
-			if (RangeTarget == null)
+			if (RangeTarget == null || (RangeTarget != null && Vector2.Distance (transform.position, RangeTarget.transform.position) > Range_Range))
 				RangeTarget = minEnemy;
 			Vector3 playerPos = RangeTarget.transform.position;
 			Vector3 diff = playerPos - transform.position;
@@ -243,7 +261,7 @@ public class TowerControl : MonoBehaviour
 
 	public bool AbsorbOtherTower (TowerInfo oTI)
 	{
-		if (TI.Equals (oTI) && GameManager.GM.hasEnoughCoin (TowerInfoToMergeCoin (TI)) && TowerLevel <= 3) {
+		if (TI.Equals (oTI) && GameManager.GM.hasEnoughCoin (TowerInfoToMergeCoin (TI)) && TowerLevel <= 4) {
 			// Consume Coin to merge
 			GameManager.GM.AddCoin (-TowerInfoToMergeCoin (TI));
 			// Instantiate Level up effect
@@ -288,6 +306,33 @@ public class TowerControl : MonoBehaviour
 		}
 	}
 
+	public string[] getTowerInfos ()
+	{
+		string name = TT.ToString () + " " + convertToRoman (TowerLevel);
+		string health = Health.ToString (".0#");
+		string Armor = (maxArmor * 100f).ToString (".0#");
+		string AP = maxAttackPower.ToString (".0#");
+		return new string[] { name, health, Armor, AP };
+	}
+
+	string convertToRoman (int num)
+	{
+		//Roman numerals to have <= 3 consecutive characters, the distances between deciaml values conform to this
+		int[] decimalValue = { 10, 9, 5, 4, 1 };
+		string[] romanNumeral = { "X", "IX", "V", "IV", "I" };
+		int num_cp = num; // copy the function parameter into num_cp
+		string result = "";
+
+		for (var i = 0; i < decimalValue.Length; i++) { //itarate through array of decimal values
+			//iterate more to find values not explicitly provided in the decimalValue array
+			while (decimalValue [i] <= num_cp) {
+				result += romanNumeral [i];
+				num_cp -= decimalValue [i];
+			}
+		}
+		return result;
+	}
+
 	void HealthBarControl (float health)
 	{
 		float percentHealth = health / maxHealth;
@@ -297,8 +342,10 @@ public class TowerControl : MonoBehaviour
 
 	public static int TowerInfoToMergeCoin (TowerInfo ti)
 	{
-		int baseMergeCoin = 15;
-		baseMergeCoin *= ti.level;
+		int baseMergeCoin = 7;
+		for (int i = ti.level + 1; i > 0; i--) {
+			baseMergeCoin *= i;
+		}
 		return baseMergeCoin;
 	}
 
@@ -309,11 +356,18 @@ public class TowerControl : MonoBehaviour
 		return baseRepCoin;
 	}
 
+	public int thisTowerToRepCoin ()
+	{
+		int baseRepCoin = 10;
+		baseRepCoin *= TowerLevel;
+		return baseRepCoin;
+	}
+
 	public float thisTowerToRepTime ()
 	{
-		float baseTime = 12f;
+		float baseTime = 15f;
 		switch (TT) {
-		case TowerType.Defense:
+		case TowerType.Tank:
 		case TowerType.Heal:
 		case TowerType.Range:
 			break;
@@ -326,7 +380,7 @@ public class TowerControl : MonoBehaviour
 	{
 		float baseTime = 8f;
 		switch (ti.thisTowerType) {
-		case TowerType.Defense:
+		case TowerType.Tank:
 		case TowerType.Heal:
 		case TowerType.Range:
 			break;
@@ -352,8 +406,11 @@ public class TowerControl : MonoBehaviour
 	public void setFunctioning (bool stop)
 	{
 		stopFunctioning = stop;
-		if (stopFunctioning)
-			TowerAnimator.SetBool ("StayDull", true);
+		if (stopFunctioning) {
+			GetComponentInChildren <Animator> ().SetBool ("StayDull", true);
+//			GetComponentInChildren<Animator> ().stop;
+			TowerSpriteAndAnimation.transform.rotation = Quaternion.identity;
+		}
 	}
 
 	public bool isFunctioning ()

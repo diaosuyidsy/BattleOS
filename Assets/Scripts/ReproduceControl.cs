@@ -17,8 +17,6 @@ public class ReproduceControl : MonoBehaviour
 	private GameObject ReproductionTarget;
 	private bool startRe;
 	private SpriteRenderer TargetSR;
-	private float targetHealth;
-	private float targetMaxHealth;
 	private int siblingIndex;
 
 	void Start ()
@@ -46,6 +44,15 @@ public class ReproduceControl : MonoBehaviour
 				newTower.GetComponent<TowerControl> ().HealthBar.GetComponent<SpriteRenderer> ().sprite = GreenBar;
 				//set range image to false
 				newTower.transform.GetChild (0).gameObject.SetActive (false);
+				newTower.GetComponent<PlayerControl> ().Engaged = false;
+				newTower.GetComponent<TowerControl> ().TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().color = Color.white;
+
+				SpriteRenderer[] sprites = newTower.GetComponentsInChildren<SpriteRenderer> ();
+				foreach (SpriteRenderer sprite in sprites) {
+					Color b = sprite.color;
+					b.a = 1f;
+					sprite.color = b;
+				}
 				GameManager.GM.ProductionStarters [siblingIndex].SetActive (true);
 				GameManager.GM.AddCoin (0);
 				startRe = false;
@@ -62,13 +69,7 @@ public class ReproduceControl : MonoBehaviour
 	public void StopReproduce ()
 	{
 		startRe = false;
-		ReproductionTarget.GetComponent<PlayerControl> ().Engaged = false;
-		float percent = targetHealth / targetMaxHealth;
-		TargetSR.transform.localScale = new Vector3 (percent, TargetSR.transform.localScale.y, TargetSR.transform.localScale.z);
-		TargetSR.transform.localPosition = new Vector3 ((1f - percent) * -4.5f, TargetSR.transform.localPosition.y, TargetSR.transform.localPosition.z);
-		TargetSR.sprite = GreenBar;
-		ReproductionTarget.GetComponent<TowerControl> ().setFunctioning (false);
-		GameManager.GM.ProductionStarters [siblingIndex].SetActive (false);
+		ReproductionTarget = null;
 	}
 
 	public void StartReproduce ()
@@ -79,9 +80,9 @@ public class ReproduceControl : MonoBehaviour
 		maxProduceTime = 0f;
 		pTime = 0f;
 		ReproductionTarget = transform.GetChild (0).gameObject;
-		targetHealth = ReproductionTarget.GetComponent<TowerControl> ().getHealth ();
-		targetMaxHealth = ReproductionTarget.GetComponent<TowerControl> ().maxHealth;
+
 		ReproductionTarget.GetComponent<TowerControl> ().setFunctioning (true);
+		ReproductionTarget.transform.GetChild (0).gameObject.SetActive (false);
 		// Set up Reproduction Bar
 		GameObject targetHB = ReproductionTarget.GetComponent<TowerControl> ().HealthBar;
 		TargetSR = targetHB.GetComponent<SpriteRenderer> ();
@@ -91,7 +92,7 @@ public class ReproduceControl : MonoBehaviour
 		// Set up max Reproduce time
 		maxProduceTime = ReproductionTarget.GetComponent<TowerControl> ().thisTowerToRepTime ();
 		// Set up need coin for production
-		productionCoin = TowerControl.TowerInfoToRepCoin (ReproductionTarget.GetComponent<TowerControl> ().TI);
+		productionCoin = ReproductionTarget.GetComponent<TowerControl> ().thisTowerToRepCoin ();
 		// Active the starter
 		GameManager.GM.ProductionStarters [siblingIndex].transform.GetChild (1).GetComponent<Text> ().text = productionCoin.ToString ();
 

@@ -27,10 +27,13 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
 	public void OnBeginDrag (PointerEventData _EventData)
 	{
-		if (Engaged)
-			return;
+//		if (Engaged)
+//			return;
 //		if (transform.parent.gameObject.tag == "ProductionSlot" && transform.parent.gameObject.GetComponent<ReproduceControl> ().isReproducing ())
 //			return;
+		if (transform.parent.gameObject.tag == "ProductionSlot") {
+			return;
+		}
 		towerBeingDragged = gameObject;
 		StartPosition = transform.position;
 		StartParent = transform.parent;
@@ -39,17 +42,20 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
 	public void OnDrag (PointerEventData _EventData)
 	{
-		if (Engaged) {
-			if (shadowImage != null)
-				Destroy (shadowImage);
+//		if (Engaged) {
+//			if (shadowImage != null)
+//				Destroy (shadowImage);
+//			return;
+//		}
+		if (towerBeingDragged == null)
 			return;
-		}
 		if (_EventData.pointerEnter != gameObject && _EventData.pointerEnter.tag == "Tower") {
 			draggedOver = _EventData.pointerEnter;
 			if (GetComponent<TowerControl> ().TI.Equals (draggedOver.GetComponent<TowerControl> ().TI))
 				draggedOver.GetComponent<PlayerControl> ().isDraggedOver = true;
 		}
-		shadowImage.transform.position = new Vector3 (Camera.main.ScreenToWorldPoint (Input.mousePosition).x, Camera.main.ScreenToWorldPoint (Input.mousePosition).y, transform.position.z);
+		if (shadowImage != null)
+			shadowImage.transform.position = new Vector3 (Camera.main.ScreenToWorldPoint (Input.mousePosition).x, Camera.main.ScreenToWorldPoint (Input.mousePosition).y, transform.position.z);
 	}
 
 	public void OnEndDrag (PointerEventData _EventData)
@@ -58,37 +64,54 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 			draggedOver.GetComponent<PlayerControl> ().isDraggedOver = false;
 			draggedOver.transform.localScale = new Vector3 (0.5f, 0.5f, 1f);
 		}
-		if (Engaged) {
-			Destroy (shadowImage);
+		if (towerBeingDragged == null)
 			return;
-		}
+//		if (Engaged) {
+//			Destroy (shadowImage);
+//			return;
+//		}
 		Destroy (shadowImage);
 		Transform minSlot = FindNearestSlot ();
 		// If minSlot is not startParent, and minSlot has occupant
 		// TryMerge
 		// Else is just a simple Position change
 		if (minSlot != StartParent && minSlot.childCount > 0) {
-			if (minSlot.gameObject.tag != "ProductionSlot" && TryMerge (minSlot))
-				Destroy (gameObject);
-			else {
-				transform.parent = StartParent;
+			if (minSlot.tag == "ProductionSlot") {
+				minSlot.GetComponent<ReproduceControl> ().StopReproduce ();
+				GameObject child = minSlot.GetChild (0).gameObject;
+				child.transform.SetParent (null);
+				Destroy (child);
+			}
+			if (minSlot.gameObject.tag != "ProductionSlot") {
+				if (TryMerge (minSlot))
+					Destroy (gameObject);
+				else {
+					minSlot.GetChild (0).parent = StartParent;
+					transform.parent = minSlot;
+					StartParent.transform.GetChild (0).localPosition = Vector3.zero;
+				}
 			}
 			transform.localPosition = Vector3.zero;
 		} else {
 			transform.parent = minSlot;
 			transform.localPosition = Vector3.zero;
-			if (StartParent.tag == "ProductionSlot") {
-				StartParent.gameObject.SendMessage ("StopReproduce");
-			}
-			if (minSlot.gameObject.tag == "ProductionSlot") {
-				if (!minSlot.gameObject.GetComponent<ReproduceControl> ().Locked)
-					minSlot.gameObject.SendMessage ("StartReproduce");
-				else {
-					transform.parent = StartParent;
-					transform.localPosition = Vector3.zero;
-				}
-			} 
 		}
+		// If Dragged to ProductionSlot; Create an Image there
+		if (minSlot.gameObject.tag == "ProductionSlot") {
+			transform.parent = StartParent;
+			transform.localPosition = Vector3.zero;
+			if (!minSlot.gameObject.GetComponent<ReproduceControl> ().Locked) {
+				GameObject TowerImage = Instantiate (gameObject, minSlot.position, Quaternion.identity, minSlot.transform);
+				SpriteRenderer[] sprites = TowerImage.GetComponent<TowerControl> ().EnterRepoSprites;
+				foreach (SpriteRenderer sprite in sprites) {
+					Color b = sprite.color;
+					b.a = 0.5f;
+					sprite.color = b;
+				}
+				minSlot.gameObject.GetComponent<ReproduceControl> ().StartReproduce ();
+			}
+
+		} 
 		GameManager.GM.ConsumeCoinHolder.SetActive (false);
 		towerBeingDragged = null;
 		draggedOver = null;
@@ -102,7 +125,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	void OnMouseUp ()
 	{
 		startClicking = false;
-		if (clickCD <= 0.15f) {
+		if (clickCD <= 0.1f) {
 			// It's a click
 			if (gameObject.transform.parent.tag == "ProductionSlot") {
 				gameObject.transform.parent.gameObject.GetComponent<ReproduceControl> ().tryStart ();
@@ -119,6 +142,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 				GameManager.GM.selectedTower = gameObject;
 				towerRangeImage.SetActive (true);
 			}
+			GameManager.GM.onSelectedTower ();
 		}
 		clickCD = 0f;
 	}
@@ -151,10 +175,10 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
 	Transform FindNearestSlot ()
 	{
-		float minDis = Vector3.Distance (StartPosition, Camera.main.ScreenToWorldPoint (Input.mousePosition));
+		float minDis = Vector2.Distance (StartPosition, Camera.main.ScreenToWorldPoint (Input.mousePosition));
 		Transform minSlot = StartParent;
 		foreach (GameObject slot in GameManager.GM.Slots) {
-			float tempDis = Vector3.Distance (Camera.main.ScreenToWorldPoint (Input.mousePosition), slot.transform.position);
+			float tempDis = Vector2.Distance (Camera.main.ScreenToWorldPoint (Input.mousePosition), slot.transform.position);
 			if (tempDis <= minDis) {
 				minDis = tempDis;
 				minSlot = slot.transform;

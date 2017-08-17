@@ -23,13 +23,19 @@ public class GameManager : MonoBehaviour
 	public string[] PlayerDesignNumberStrs;
 	public Sprite[] EnemySprite;
 	public Sprite[] SmallEnemySprite;
+	public Sprite[] RangeTowerSprites;
+	public Sprite[] MeleeTowerSprites;
 	public GameObject TargetedEnemy;
 	public GameObject Level1TankTower;
 	public GameObject Level1HealTower;
 	public Text PlayerHealthText;
 	public GameObject GameOverHolder;
+	public Text[] TowerInfoPanelTexts;
+	public GAui TowerInfoPanel;
+	public Text ScoreText;
+	private int score;
 
-	private int PlayerHealth = 1;
+	private int PlayerHealth = 2;
 	private int slotNum = 0;
 
 	void Awake ()
@@ -48,7 +54,6 @@ public class GameManager : MonoBehaviour
 		AddCoin (startCoin);
 		PlayerDesignNumberStrs = TowerAndEnemyNum.text.Split ("\n" [0]);
 		PlayerHealthText.text = PlayerHealth.ToString ();
-
 	}
 
 	public bool hasEnoughCoin (int tryToSpend)
@@ -96,19 +101,25 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
+	public void onScore (int scorenum)
+	{
+		score += scorenum;
+		ScoreText.text = score.ToString ();
+	}
+
 	public void UnlockSlot ()
 	{
 		if (!hasEnoughCoin (UnlockNextSlotCoin [slotNum]) || slotNum > 5)
 			return;
 		if (slotNum == 0) {
-			int slotIndex = 29;
+			int slotIndex = 28;
 			while (Slots [slotIndex].transform.childCount != 0) {
 				slotIndex--;
 			}
 			Instantiate (Level1TankTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
 		}
 		if (slotNum == 1) {
-			int slotIndex = 19;
+			int slotIndex = 18;
 			while (Slots [slotIndex].transform.childCount != 0) {
 				slotIndex--;
 			}
@@ -126,7 +137,20 @@ public class GameManager : MonoBehaviour
 			ProductionLocks [i].GetComponentInChildren<Text> ().text = UnlockNextSlotCoin [slotNum].ToString ();
 		}
 		PlayerHealth++;
+		PlayerHealthText.text = PlayerHealth.ToString ();
+	}
 
+	public void onSelectedTower ()
+	{
+		if (selectedTower == null) {
+			TowerInfoPanel.MoveOut (GUIAnimSystem.eGUIMove.SelfAndChildren);
+			return;
+		}
+		string[] allInfo = selectedTower.GetComponent<TowerControl> ().getTowerInfos ();
+		for (int i = 0; i < TowerInfoPanelTexts.Length; i++) {
+			TowerInfoPanelTexts [i].text = allInfo [i];
+		}
+		TowerInfoPanel.MoveIn (GUIAnimSystem.eGUIMove.SelfAndChildren);
 	}
 
 	public void ForceTargetEnemy (GameObject newTarget)
@@ -170,7 +194,7 @@ public class GameManager : MonoBehaviour
 
 public enum TowerType
 {
-	Defense,
+	Tank,
 	Range,
 	Heal,
 };
@@ -183,7 +207,7 @@ public class TowerInfo
 
 	public TowerInfo ()
 	{
-		thisTowerType = TowerType.Defense;
+		thisTowerType = TowerType.Tank;
 		level = 1;
 		currentHealth = 0f;
 	}
