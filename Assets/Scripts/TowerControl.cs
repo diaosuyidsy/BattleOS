@@ -17,6 +17,7 @@ public class TowerControl : MonoBehaviour
 	public ParticleSystem WeaponTrail;
 	public Transform hitPos;
 	public GameObject TowerSpriteAndAnimation;
+	public GameObject BaseSprite;
 	public bool Engaged = false;
 	public GameObject HealthBar;
 	public GameObject TowerDestrucitonEffect;
@@ -25,6 +26,7 @@ public class TowerControl : MonoBehaviour
 	public GameObject HealingEffect;
 	public Text LevelText;
 	public SpriteRenderer[] EnterRepoSprites;
+	public Material HealMaterial;
 
 	private float AttackCD;
 	public float Health;
@@ -67,6 +69,7 @@ public class TowerControl : MonoBehaviour
 		case TowerType.Range:
 			if (TowerLevel != 1) {
 				TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.RangeTowerSprites [TowerLevel - 2];
+				BaseSprite.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.RangeTowerBaseSprites [TowerLevel - 2];
 			}
 			baseIndex = 4;
 			break;
@@ -133,7 +136,8 @@ public class TowerControl : MonoBehaviour
 			TowerAnimator.SetBool ("StartHealing", false);
 		}
 		if (AttackCD <= 0f) {
-			HealTarget.SendMessage ("TakeDamage", -1f * AttackPower);
+			HealTarget.GetComponent<TowerControl> ().TakeDamage (-1f * AttackPower);
+//			HealTarget.SendMessage ("TakeDamage", -1f * AttackPower);
 			Instantiate (HealingEffect, new Vector3 (HealTarget.transform.position.x, HealTarget.transform.position.y, -6f), Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
 			DrawLine (transform.position, HealTarget.transform.position, new Color (175f / 255f, 249f / 255f, 161f / 255f, 1f));
 			TowerAnimator.SetBool ("StartHealing", true);
@@ -149,7 +153,8 @@ public class TowerControl : MonoBehaviour
 		myLine.transform.position = start;
 		myLine.AddComponent<LineRenderer> ();
 		LineRenderer lr = myLine.GetComponent<LineRenderer> ();
-		lr.material = new Material (Shader.Find ("Particles/Alpha Blended Premultiply"));
+//		lr.material = new Material (Shader.Find ("Particles/Alpha Blended Premultiply"));
+		lr.material = HealMaterial;
 		lr.startColor = color;
 		lr.endColor = color;
 		lr.startWidth = 0.06f;

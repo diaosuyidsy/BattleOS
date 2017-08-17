@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
 	public Sprite[] EnemySprite;
 	public Sprite[] SmallEnemySprite;
 	public Sprite[] RangeTowerSprites;
+	public Sprite[] RangeTowerBaseSprites;
 	public Sprite[] MeleeTowerSprites;
 	public GameObject TargetedEnemy;
 	public GameObject Level1TankTower;
@@ -197,6 +198,7 @@ public enum TowerType
 	Tank,
 	Range,
 	Heal,
+	Missile,
 };
 
 public class TowerInfo
