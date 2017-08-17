@@ -76,13 +76,6 @@ public class TowerControl : MonoBehaviour
 					EnterRepoSprites [i].gameObject.SetActive (true);
 				}
 			}
-			foreach (SpriteRenderer sr in EnterRepoSprites) {
-				if (sr.gameObject.activeSelf) {
-					Color c = sr.color;
-					c.a = 1f;
-					sr.color = c;
-				}
-			}
 			baseIndex = 8;
 			break;
 		}
@@ -150,6 +143,8 @@ public class TowerControl : MonoBehaviour
 
 	void DrawLine (Vector3 start, Vector3 end, Color color, float duration = 0.2f)
 	{
+		start = new Vector3 (start.x, start.y, -3f);
+		end = new Vector3 (end.x, end.y, -3f);
 		GameObject myLine = new GameObject ();
 		myLine.transform.position = start;
 		myLine.AddComponent<LineRenderer> ();
@@ -276,17 +271,18 @@ public class TowerControl : MonoBehaviour
 
 	void LevelUp (float otherTHealth)
 	{
-		if (otherTHealth > Health)
-			TakeDamage (-1f * (otherTHealth - Health));
+		float percentHealth = Mathf.Max (otherTHealth, Health) / maxHealth;
 		TowerLevel++;
 		setParam ();
+		Health = maxHealth * percentHealth;
+		TakeDamage (0f);
 		TI.level = TowerLevel;
 	}
 
 	public void TakeDamage (float dmg)
 	{
 		// if dmg < 0, then it's healing, else it's damage
-		if (dmg < 0f) {
+		if (dmg <= 0f) {
 			Health -= dmg;
 			if (Health > maxHealth)
 				Health = maxHealth;
@@ -407,7 +403,7 @@ public class TowerControl : MonoBehaviour
 	{
 		stopFunctioning = stop;
 		if (stopFunctioning) {
-			GetComponentInChildren <Animator> ().SetBool ("StayDull", true);
+//			GetComponentInChildren <Animator> ().SetBool ("StayDull", true);
 //			GetComponentInChildren<Animator> ().stop;
 			TowerSpriteAndAnimation.transform.rotation = Quaternion.identity;
 		}

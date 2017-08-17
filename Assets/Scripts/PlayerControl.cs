@@ -106,7 +106,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 				foreach (SpriteRenderer sprite in sprites) {
 					Color b = sprite.color;
 					b.a = 0.5f;
-					sprite.color = b;
+					sprite.color = b;	
 				}
 				minSlot.gameObject.GetComponent<ReproduceControl> ().StartReproduce ();
 			}
