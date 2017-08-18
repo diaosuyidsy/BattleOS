@@ -85,8 +85,9 @@ public class LevelControl : MonoBehaviour
 			if (Level4ThreshHold <= 92f)
 				Level4ThreshHold += 0.2f;
 		}
-		Debug.Log ("Level2Threshold: " + Level2ThreshHold + "\nLevel3Threshold: " + Level3ThreshHold + "\nLevel4Threshold: " + Level4ThreshHold);
-		
+		ConsoleProDebug.Watch ("Level 2 Threshold: ", Level2ThreshHold.ToString ());
+		ConsoleProDebug.Watch ("Level 3 Threshold: ", Level3ThreshHold.ToString ());
+		ConsoleProDebug.Watch ("Level 4 Threshold: ", Level4ThreshHold.ToString ());
 		if (randomNum <= Level2ThreshHold) {
 			return 2;
 		} else if (randomNum <= Level3ThreshHold) {
@@ -106,7 +107,7 @@ public class LevelControl : MonoBehaviour
 			LevelControl.LC.EnemySpawns [0].SetActive (true);
 		if (epoch == 20)
 			LevelControl.LC.EnemySpawns [4].SetActive (true);
-		Debug.Log (epoch);
+		ConsoleProDebug.Watch ("Epoch#: ", epoch.ToString ());
 		int level = epochToEnemyLevel ();
 		int randomIndex = Random.Range (0, EnemySpawns.Length);
 		while (!EnemySpawns [randomIndex].activeSelf) {

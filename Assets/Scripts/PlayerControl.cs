@@ -27,10 +27,6 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
 	public void OnBeginDrag (PointerEventData _EventData)
 	{
-//		if (Engaged)
-//			return;
-//		if (transform.parent.gameObject.tag == "ProductionSlot" && transform.parent.gameObject.GetComponent<ReproduceControl> ().isReproducing ())
-//			return;
 		if (transform.parent.gameObject.tag == "ProductionSlot") {
 			return;
 		}
@@ -42,11 +38,6 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 
 	public void OnDrag (PointerEventData _EventData)
 	{
-//		if (Engaged) {
-//			if (shadowImage != null)
-//				Destroy (shadowImage);
-//			return;
-//		}
 		if (towerBeingDragged == null)
 			return;
 		if (_EventData.pointerEnter != gameObject && _EventData.pointerEnter.tag == "Tower") {
@@ -66,10 +57,6 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		}
 		if (towerBeingDragged == null)
 			return;
-//		if (Engaged) {
-//			Destroy (shadowImage);
-//			return;
-//		}
 		Destroy (shadowImage);
 		Transform minSlot = FindNearestSlot ();
 		// If minSlot is not startParent, and minSlot has occupant
@@ -177,6 +164,8 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		float minDis = Vector2.Distance (StartPosition, Camera.main.ScreenToWorldPoint (Input.mousePosition));
 		Transform minSlot = StartParent;
 		foreach (GameObject slot in GameManager.GM.Slots) {
+			if (slot == null)
+				continue;
 			float tempDis = Vector2.Distance (Camera.main.ScreenToWorldPoint (Input.mousePosition), slot.transform.position);
 			if (tempDis <= minDis) {
 				minDis = tempDis;
@@ -191,6 +180,17 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	{
 		TowerInfo thisTI = GetComponent<TowerControl> ().TI;
 		return MergedParent.GetChild (0).gameObject.GetComponent<TowerControl> ().AbsorbOtherTower (thisTI);
+	}
 
+	void OnTriggerEnter2D (Collider2D other)
+	{
+		if (other.tag == "FortifySpell")
+			transform.parent.GetComponent<SpriteRenderer> ().color = Color.green;
+	}
+
+	void OnTriggerExit2D (Collider2D other)
+	{
+		if (other.tag == "FortifySpell")
+			transform.parent.GetComponent<SpriteRenderer> ().color = Color.white;
 	}
 }

@@ -12,7 +12,16 @@ public class TowerControl : MonoBehaviour
 	public float maxAttackPower;
 	[Range (0f, 1f)]
 	public float maxArmor;
-	public float maxAttackCD = 1f;
+
+	public float maxAttackCD {
+		get {
+			return ACD / AttackCDBuffer;
+		}
+		set {
+			ACD = value;
+		}
+	}
+
 	public float Range_Range = 2f;
 	public ParticleSystem WeaponTrail;
 	public Transform hitPos;
@@ -27,11 +36,50 @@ public class TowerControl : MonoBehaviour
 	public Text LevelText;
 	public SpriteRenderer[] EnterRepoSprites;
 	public Material HealMaterial;
+	public float Health;
+
+	private float ACDB = 1;
+	private float ACD;
+	private float AP;
+	private float AM;
+
+	private float AttackCDBuffer {
+		get {
+			return ACDB;
+		}
+		set {
+			ACDB = value;
+			if (TowerAnimator != null) {
+				TowerAnimator.SetFloat ("AttackSpeed", 1f / maxAttackCD);
+			}
+		}
+	}
+
+	float AttackPowerBuffer = 1f;
+	float ArmorBuffer = 1f;
 
 	private float AttackCD;
-	public float Health;
-	private float AttackPower;
-	private float Armor;
+
+	public float AttackPower {
+		get {
+			return AP * AttackPowerBuffer;
+		}
+		set {
+			AP = value;
+		}
+	}
+
+	public float Armor {
+		get {
+			float result = AM * ArmorBuffer;
+			return Mathf.Min (1f, result);
+
+		}
+		set {
+			AM = value;
+		}
+	}
+
 	private Animator TowerAnimator;
 	private Color thisColor;
 	private GameObject RangeTarget;
@@ -53,7 +101,6 @@ public class TowerControl : MonoBehaviour
 		AttackCD = maxAttackCD;
 		Health = maxHealth;
 		TI = new TowerInfo (TT, TowerLevel, Health);
-
 	}
 
 	void setParam ()
@@ -71,15 +118,18 @@ public class TowerControl : MonoBehaviour
 				TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.RangeTowerSprites [TowerLevel - 2];
 				BaseSprite.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.RangeTowerBaseSprites [TowerLevel - 2];
 			}
-			baseIndex = 4;
+			baseIndex = 8;
 			break;
 		case TowerType.Heal:
-			if (TowerLevel != 1) {
-				for (int i = 0; i < TowerLevel - 1; i++) {
+			if (TowerLevel > 1) {
+				for (int i = 0; i < Mathf.Min (TowerLevel, 4) - 1; i++) {
 					EnterRepoSprites [i].gameObject.SetActive (true);
 				}
 			}
-			baseIndex = 8;
+			baseIndex = 16;
+			break;
+		case TowerType.Missile:
+			baseIndex = 24;
 			break;
 		}
 		baseIndex += (TowerLevel - 1);
@@ -87,9 +137,15 @@ public class TowerControl : MonoBehaviour
 		float.TryParse (Params [0], out maxHealth);
 		float.TryParse (Params [1], out maxAttackPower);
 		float.TryParse (Params [2], out maxArmor);
-		float.TryParse (Params [3], out maxAttackCD);
+		float mCD = 0f;
+		float.TryParse (Params [3], out mCD);
+		maxAttackCD = mCD;
 		float.TryParse (Params [4], out Range_Range);
-		RangeCircleImage.transform.localScale = new Vector3 (Range_Range, Range_Range, 1f);
+		if (TT == TowerType.Missile) {
+
+		} else
+			RangeCircleImage.transform.localScale = new Vector3 (Range_Range, Range_Range, 1f);
+
 		Armor = maxArmor;
 		AttackPower = maxAttackPower;
 		TowerAnimator.SetFloat ("AttackSpeed", 1f / maxAttackCD);
@@ -114,15 +170,6 @@ public class TowerControl : MonoBehaviour
 			break;
 		}
 
-	}
-
-
-
-	void OnDrawGizmosSelected ()
-	{
-		// Display the explosion radius when selected
-		Gizmos.color = Color.red;
-		Gizmos.DrawLine (transform.position, new Vector3 (transform.position.x, transform.position.y + Range_Range));
 	}
 
 	void Heal ()
@@ -150,7 +197,6 @@ public class TowerControl : MonoBehaviour
 		}
 		if (AttackCD <= 0f) {
 			HealTarget.GetComponent<TowerControl> ().TakeDamage (-1f * AttackPower);
-//			HealTarget.SendMessage ("TakeDamage", -1f * AttackPower);
 			Instantiate (HealingEffect, new Vector3 (HealTarget.transform.position.x, HealTarget.transform.position.y, -6f), Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
 			DrawLine (transform.position, HealTarget.transform.position, new Color (175f / 255f, 249f / 255f, 161f / 255f, 1f));
 			TowerAnimator.SetBool ("StartHealing", true);
@@ -166,7 +212,6 @@ public class TowerControl : MonoBehaviour
 		myLine.transform.position = start;
 		myLine.AddComponent<LineRenderer> ();
 		LineRenderer lr = myLine.GetComponent<LineRenderer> ();
-//		lr.material = new Material (Shader.Find ("Particles/Alpha Blended Premultiply"));
 		lr.material = HealMaterial;
 		lr.startColor = color;
 		lr.endColor = color;
@@ -193,6 +238,7 @@ public class TowerControl : MonoBehaviour
 			AttackCD -= Time.deltaTime;
 		} else {
 			TowerAnimator.SetBool ("StartAttack", false);
+			AttackCD = maxAttackCD;
 		}
 		if (AttackCD <= 0f) {
 			GameObject bullet = (GameObject)Instantiate (RangeBulletPrefab, hitPos.position, Quaternion.identity);
@@ -319,6 +365,24 @@ public class TowerControl : MonoBehaviour
 		Health = maxHealth * percentHealth;
 		TakeDamage (0f);
 		TI.level = TowerLevel;
+	}
+
+	public void TempBuff (float APBuff, float ArmorBuff, float AttackCDBuff, float duration)
+	{
+		StartCoroutine (tempBuff (AttackPowerBuffer, ArmorBuffer, AttackCDBuffer, duration));
+		AttackPowerBuffer = APBuff;
+		ArmorBuffer = ArmorBuff;
+		AttackCDBuffer = AttackCDBuff;
+	}
+
+	IEnumerator tempBuff (float OriginalAPBuffer, float OriginalArmorBuffer, float OriginalAttackCDBuffer, float duration)
+	{
+		GameObject buffEffect = Instantiate (GameManager.GM.BuffEffect, new Vector3 (transform.position.x, transform.position.y, -8f), Quaternion.Euler (new Vector3 (-90f, 0f)), transform);
+		yield return new WaitForSeconds (duration);
+		AttackPowerBuffer = OriginalAPBuffer;
+		ArmorBuffer = OriginalArmorBuffer;
+		AttackCDBuffer = OriginalAttackCDBuffer;
+		Destroy (buffEffect);
 	}
 
 	public void TakeDamage (float dmg)

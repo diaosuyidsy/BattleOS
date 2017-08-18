@@ -46,7 +46,8 @@ public class ReproduceControl : MonoBehaviour
 				//set range image to false
 				newTower.transform.GetChild (0).gameObject.SetActive (false);
 				newTower.GetComponent<PlayerControl> ().Engaged = false;
-				TC.TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().color = Color.white;
+				if (TC.TowerSpriteAndAnimation.GetComponent<SpriteRenderer> () != null)
+					TC.TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().color = Color.white;
 
 				SpriteRenderer[] sprites = newTower.GetComponentsInChildren<SpriteRenderer> ();
 				foreach (SpriteRenderer sprite in sprites) {
@@ -110,7 +111,8 @@ public class ReproduceControl : MonoBehaviour
 		// If prior slot has a tower, no
 		if (SlotInFront.transform.childCount != 0)
 			return;
-
+		if (startRe)
+			return;
 		//Else start!
 		GameManager.GM.ProductionStarters [siblingIndex].SetActive (false);
 		GameManager.GM.AddCoin (-productionCoin);

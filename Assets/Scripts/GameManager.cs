@@ -11,6 +11,9 @@ public class GameManager : MonoBehaviour
 	public GameObject[] Slots;
 	public GameObject[] ProductionLocks;
 	public GameObject[] ProductionStarters;
+	public GameObject SpellLock;
+	public GameObject SpellStarter;
+	public GameObject FortifySpell;
 	public GameObject selectedTower;
 	public int Coins = 0;
 	public Text CoinText;
@@ -29,13 +32,15 @@ public class GameManager : MonoBehaviour
 	public GameObject TargetedEnemy;
 	public GameObject Level1TankTower;
 	public GameObject Level1HealTower;
+	public GameObject Level2MissileTower;
 	public Text PlayerHealthText;
 	public GameObject GameOverHolder;
 	public Text[] TowerInfoPanelTexts;
 	public GAui TowerInfoPanel;
 	public Text ScoreText;
-	private int score;
+	public GameObject BuffEffect;
 
+	private int score;
 	private int PlayerHealth = 2;
 	private int slotNum = 0;
 
@@ -125,6 +130,23 @@ public class GameManager : MonoBehaviour
 				slotIndex--;
 			}
 			Instantiate (Level1HealTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
+		}
+		if (slotNum == 2) {
+			int slotIndex = 5;
+			while (Slots [slotIndex].transform.childCount != 0) {
+				slotIndex++;
+				if (slotIndex > Slots.Length - 1) {
+					break;
+				}
+			}
+			if (slotIndex <= Slots.Length - 1) {
+				Instantiate (Level2MissileTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
+			}
+		}
+		if (slotNum == 3) {
+			FortifySpell.SetActive (true);
+			SpellLock.SetActive (false);
+			SpellStarter.SetActive (true);
 		}
 		AddCoin (-UnlockNextSlotCoin [slotNum]);
 		slotNum++;

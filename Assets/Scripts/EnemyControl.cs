@@ -30,7 +30,7 @@ public class EnemyControl : MonoBehaviour
 	void Start ()
 	{
 		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;
-
+		EnemyAnimator = SpriteAndAnimation.GetComponent<Animator> ();
 	}
 
 	public void setLevel (int level)
@@ -47,24 +47,23 @@ public class EnemyControl : MonoBehaviour
 
 	void setParam ()
 	{
-		switch (EnemyLevel) {
-		case 1:
+		if (EnemyLevel % 4 == 1) {
 			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [0];
-			break;
-		case 2:
+
+		} else if (EnemyLevel % 4 == 2) {
 			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [0];
 			SpriteAndAnimation.GetComponent<SpriteRenderer> ().color = new Color (253f / 255f, 132f / 255f, 132f / 255f);
-			break;
-		case 3:
+		} else if (EnemyLevel % 4 == 3) {
 			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [1];
-			break;
-		case 4:
+		} else {
 			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [1];
 			SpriteAndAnimation.GetComponent<SpriteRenderer> ().color = new Color (253f / 255f, 132f / 255f, 132f / 255f);
-			break;
 		}
-		int baseIndex = 12;
-		baseIndex += (EnemyLevel - 1);
+		for (int i = 0; i < EnemyLevel / 4; i++) {
+			SpriteAndAnimation.transform.localScale += new Vector3 (0.5f, 0.5f, 0f);
+		}
+		int baseIndex = 33;
+		baseIndex += Mathf.Min ((EnemyLevel - 1), 7);
 		string[] Params = GameManager.GM.TowerAndEnemyNum.text.Split ("\n" [0]) [baseIndex].Split (' ');
 		float.TryParse (Params [0], out maxHealth);
 		float.TryParse (Params [1], out maxAttackPower);
@@ -72,6 +71,13 @@ public class EnemyControl : MonoBehaviour
 		float.TryParse (Params [3], out maxAttackCD);
 		float.TryParse (Params [4], out walkingSpeed);
 		int.TryParse (Params [Params.Length - 1], out Coins);
+		for (int i = 8; i < EnemyLevel; i++) {
+			maxHealth *= 2f;
+			maxAttackPower *= 2f;
+			maxArmor *= 1.01f;
+			maxAttackCD /= 1.01f;
+			Coins++;
+		}
 	}
 
 
