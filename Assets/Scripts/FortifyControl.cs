@@ -58,7 +58,6 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 			startRe = false;
 		}
 		float percent = pTime / maxProduceTime;
-		ConsoleProDebug.Watch ("Percent", percent.ToString ());
 		Progression.transform.localScale = new Vector3 (percent, Progression.transform.localScale.y, Progression.transform.localScale.z);
 		Progression.transform.localPosition = new Vector3 ((1f - percent) * -4.5f, Progression.transform.localPosition.y, Progression.transform.localPosition.z);
 
