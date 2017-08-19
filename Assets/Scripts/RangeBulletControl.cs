@@ -10,6 +10,8 @@ public class RangeBulletControl : MonoBehaviour
 	private GameObject target;
 	private float attackdmg;
 	bool straght = false;
+	bool bleed = false;
+	bool cold = false;
 	
 	// Update is called once per frame
 	void Update ()
@@ -34,18 +36,24 @@ public class RangeBulletControl : MonoBehaviour
 			transform.position += transform.up * MoveSpeed * Time.deltaTime;
 	}
 
-	public void SetTarget (GameObject go, float dmg, bool straight)
+	public void SetTarget (GameObject go, float dmg, bool straight, bool bleed = false, bool coldBullet = false)
 	{
 		target = go;
 		attackdmg = dmg;
 		straght = straight;
 		targetSet = true;
+		this.bleed = bleed;
+		cold = coldBullet;
 	}
 
 	void OnTriggerEnter2D (Collider2D other)
 	{
 		if (other.gameObject.tag == "Enemy") {
 			other.gameObject.SendMessage ("TakeDamage", attackdmg);
+			if (bleed)
+				other.gameObject.GetComponent<EnemyControl> ().startBleed (10f, attackdmg * 0.5f);
+			if (cold)
+				other.gameObject.GetComponent<EnemyControl> ().startCold (3f);
 			Destroy (gameObject);
 		}
 

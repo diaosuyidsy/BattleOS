@@ -42,7 +42,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 			return;
 		if (_EventData.pointerEnter != gameObject && _EventData.pointerEnter.tag == "Tower") {
 			draggedOver = _EventData.pointerEnter;
-			if (GetComponent<TowerControl> ().TI.Equals (draggedOver.GetComponent<TowerControl> ().TI))
+			if (GetComponent<TowerControl> ().TI.Equals (draggedOver.GetComponent<TowerControl> ().TI) || GetComponent<TowerControl> ().TI.CanMixMergeWith (draggedOver.GetComponent<TowerControl> ().TI))
 				draggedOver.GetComponent<PlayerControl> ().isDraggedOver = true;
 		}
 		if (shadowImage != null)
@@ -128,7 +128,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 				GameManager.GM.selectedTower = gameObject;
 				towerRangeImage.SetActive (true);
 			}
-			GameManager.GM.onSelectedTower ();
+			GameManager.GM.onSelectedTower (GetComponent<TowerControl> ().TowerLevel > 4 && GetComponent<TowerControl> ().TT != TowerType.Missile);
 		}
 		clickCD = 0f;
 	}

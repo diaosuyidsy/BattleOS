@@ -21,4 +21,9 @@ public class PopupCoin : MonoBehaviour
 	{
 		CoinText.text = coinamount.ToString ();
 	}
+
+	public void setText (string str)
+	{
+		CoinText.text = str;
+	}
 }

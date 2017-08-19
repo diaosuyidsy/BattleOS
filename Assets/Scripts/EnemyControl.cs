@@ -8,8 +8,25 @@ public class EnemyControl : MonoBehaviour
 	public float maxAttackPower;
 	[Range (0f, 1f)]
 	public float maxArmor;
-	public float maxAttackCD = 0.5f;
-	public float walkingSpeed = 1f;
+
+	public float maxAttackCD {
+		get {
+			return ACD / AttackCDBuffer;
+		}
+		set {
+			ACD = value;
+		}
+	}
+
+	public float walkingSpeed {
+		get {
+			return WS * WalkingSpBuffer;
+		}
+		set {
+			WS = value;
+		}
+	}
+
 	public GameObject SpriteAndAnimation;
 	public GameObject HitEffect;
 	public int Coins = 1;
@@ -18,19 +35,82 @@ public class EnemyControl : MonoBehaviour
 	public int EnemyLevel = 1;
 	public GameObject TargetedImage;
 
+	private float ACDB = 1f;
+	private float ACD;
+	private float AP;
+	private float AM;
+	private float WS;
+	private float WSB = 1f;
+
+	private float WalkingSpBuffer {
+		get {
+			return WSB;
+		}
+		set {
+			WSB = value;
+			if (EnemyAnimator != null) {
+				EnemyAnimator.SetFloat ("WalkingSpeed", walkingSpeed);
+			}
+		}
+	}
+
+	private float AttackCDBuffer {
+		get {
+			return ACDB;
+		}
+		set {
+			ACDB = value;
+			if (EnemyAnimator != null) {
+				EnemyAnimator.SetFloat ("AttackSpeed", 1f / maxAttackCD);
+			}
+		}
+	}
+
+	float AttackPowerBuffer = 1f;
+	float ArmorBuffer = 1f;
 	private float AttackCD;
 	public float Health;
-	private float AttackPower;
-	private float Armor;
+
+	public float AttackPower {
+		get {
+			return AP * AttackPowerBuffer;
+		}
+		set {
+			AP = value;
+		}
+	}
+
+	public float Armor {
+		get {
+			float result = AM * ArmorBuffer;
+			return Mathf.Min (1f, result);
+
+		}
+		set {
+			AM = value;
+		}
+	}
+
 	private Color thisColor;
 	private bool walking = true;
 	private Animator EnemyAnimator;
 	private bool beingTargeted = false;
 
+	//Level 5 Abilities
+	float bleedTime;
+	float bleedDmgPerTime;
+	//not important
+	float bleedTimePool;
+	float freezeDuration;
+	float freezeRate;
+
+
+
 	void Start ()
 	{
 		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;
 		EnemyAnimator = SpriteAndAnimation.GetComponent<Animator> ();
+		setLevel (8);
 	}
 
 	public void setLevel (int level)
@@ -43,6 +123,7 @@ public class EnemyControl : MonoBehaviour
 		AttackPower = maxAttackPower;
 		EnemyAnimator = SpriteAndAnimation.GetComponent<Animator> ();
 		EnemyAnimator.SetFloat ("WalkingSpeed", walkingSpeed);
+		EnemyAnimator.SetFloat ("AttackSpeed", 1f / maxAttackCD);
 	}
 
 	void setParam ()
@@ -68,8 +149,12 @@ public class EnemyControl : MonoBehaviour
 		float.TryParse (Params [0], out maxHealth);
 		float.TryParse (Params [1], out maxAttackPower);
 		float.TryParse (Params [2], out maxArmor);
-		float.TryParse (Params [3], out maxAttackCD);
-		float.TryParse (Params [4], out walkingSpeed);
+		float mCD = 0f;
+		float.TryParse (Params [3], out mCD);
+		maxAttackCD = mCD;
+		float ws = 0f;
+		float.TryParse (Params [4], out ws);
+		walkingSpeed = ws;
 		int.TryParse (Params [Params.Length - 1], out Coins);
 		for (int i = 8; i < EnemyLevel; i++) {
 			maxHealth *= 2f;
@@ -86,6 +171,40 @@ public class EnemyControl : MonoBehaviour
 		if (walking)
 			transform.Translate (Vector3.right * Time.deltaTime * walkingSpeed);
 		Hit ();
+		if (bleedTime > 0f)
+			bleeding ();
+	}
+
+	public void startBleed (float bleedt, float bleedD)
+	{
+		bleedTime = bleedt;
+		bleedDmgPerTime = Mathf.Max (bleedD / (bleedTime / 2f), bleedDmgPerTime);
+	}
+
+	void bleeding ()
+	{
+		bleedTime -= Time.deltaTime;
+		bleedTimePool += Time.deltaTime;
+		if (bleedTimePool >= 2f) {
+			bleedTimePool = 0f;
+			TakeDamage (bleedDmgPerTime);
+		}
+	}
+
+	public void startCold (float duration, float rate = 0.5f)
+	{
+		StopCoroutine ("cold");
+		StartCoroutine ("cold", rate);
+	}
+
+	IEnumerator cold (float rate = 0.8f)
+	{
+		WalkingSpBuffer = rate;
+		AttackCDBuffer = rate;
+		yield return new WaitForSeconds (3f);
+		Debug.Log ("Back");
+		WalkingSpBuffer = 1f;
+		AttackCDBuffer = 1f;
 	}
 
 	public void AddWalkingSpeed (float addedspeed)
@@ -114,7 +233,7 @@ public class EnemyControl : MonoBehaviour
 		if (AttackCD <= 0f) {
 			foreach (RaycastHit2D hit in hits) {
 				if (hit.collider != null && hit.collider.gameObject.tag == "Tower") {
-					hit.collider.gameObject.SendMessage ("TakeDamage", AttackPower);
+					hit.collider.gameObject.GetComponent<TowerControl> ().TakeDamage (AttackPower, gameObject);
 				}
 			}
 			AttackCD = maxAttackCD;

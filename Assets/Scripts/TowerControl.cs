@@ -22,6 +22,8 @@ public class TowerControl : MonoBehaviour
 		}
 	}
 
+	public float maxdodgeRate = 0f;
+
 	public float Range_Range = 2f;
 	public ParticleSystem WeaponTrail;
 	public Transform hitPos;
@@ -85,7 +87,14 @@ public class TowerControl : MonoBehaviour
 	private GameObject RangeTarget;
 	private GameObject HealTarget;
 	private bool stopFunctioning = false;
-
+	string AbilityIntroStr;
+	//Level 5 Abilities
+	bool thorn = false;
+	float leech = 0f;
+	bool bleed = false;
+	bool coldBullet = false;
+	bool chainHeal = false;
+	bool HealBuffArmor = false;
 
 	void Start ()
 	{
@@ -110,13 +119,13 @@ public class TowerControl : MonoBehaviour
 		switch (TT) {
 		case TowerType.Tank:
 			if (TowerLevel != 1) {
-				TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.MeleeTowerSprites [TowerLevel - 2];
+				TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.MeleeTowerSprites [Mathf.Min (TowerLevel - 2, 2)];
 			}
 			break;
 		case TowerType.Range:
 			if (TowerLevel != 1) {
-				TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.RangeTowerSprites [TowerLevel - 2];
-				BaseSprite.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.RangeTowerBaseSprites [TowerLevel - 2];
+				TowerSpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.RangeTowerSprites [Mathf.Min (TowerLevel - 2, 2)];
+				BaseSprite.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.RangeTowerBaseSprites [Mathf.Min (TowerLevel - 2, 2)];
 			}
 			baseIndex = 8;
 			break;
@@ -132,7 +141,7 @@ public class TowerControl : MonoBehaviour
 			baseIndex = 24;
 			break;
 		}
-		baseIndex += (TowerLevel - 1);
+		baseIndex += Mathf.Min ((TowerLevel - 1), 7);
 		string[] Params = GameManager.GM.TowerAndEnemyNum.text.Split ("\n" [0]) [baseIndex].Split (' ');
 		float.TryParse (Params [0], out maxHealth);
 		float.TryParse (Params [1], out maxAttackPower);
@@ -141,11 +150,14 @@ public class TowerControl : MonoBehaviour
 		float.TryParse (Params [3], out mCD);
 		maxAttackCD = mCD;
 		float.TryParse (Params [4], out Range_Range);
-		if (TT == TowerType.Missile) {
-
-		} else
+		if (TT != TowerType.Missile)
 			RangeCircleImage.transform.localScale = new Vector3 (Range_Range, Range_Range, 1f);
-
+		for (int i = 8; i < TowerLevel; i++) {
+			maxHealth *= 2f;
+			maxAttackPower *= 2f;
+			maxArmor *= 1.01f;
+			maxAttackCD /= 1.01f;
+		}
 		Armor = maxArmor;
 		AttackPower = maxAttackPower;
 		TowerAnimator.SetFloat ("AttackSpeed", 1f / maxAttackCD);
@@ -169,14 +181,13 @@ public class TowerControl : MonoBehaviour
 			MissileAttack ();
 			break;
 		}
-
 	}
 
 	void Heal ()
 	{
 		Collider2D[] hits = Physics2D.OverlapCircleAll (transform.position, Range_Range);
 		bool hasInjury = false;
-		float minHealth = 1000f;
+		float minHealth = 30000f;
 		GameObject minHealee = null;
 		foreach (Collider2D hit in hits) {
 			if (hit != null && hit.gameObject.tag == "Tower" && hit.gameObject.GetComponent<TowerControl> ().Injured () && hit.gameObject.GetComponent<TowerControl> ().isFunctioning ()) {
@@ -196,15 +207,56 @@ public class TowerControl : MonoBehaviour
 			TowerAnimator.SetBool ("StartHealing", false);
 		}
 		if (AttackCD <= 0f) {
-			HealTarget.GetComponent<TowerControl> ().TakeDamage (-1f * AttackPower);
-			Instantiate (HealingEffect, new Vector3 (HealTarget.transform.position.x, HealTarget.transform.position.y, -6f), Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
-			DrawLine (transform.position, HealTarget.transform.position, new Color (175f / 255f, 249f / 255f, 161f / 255f, 1f));
-			TowerAnimator.SetBool ("StartHealing", true);
+			if (HealTarget != null) {
+				HealTarget.GetComponent<TowerControl> ().TakeDamage (-1f * AttackPower);
+				Instantiate (HealingEffect, new Vector3 (HealTarget.transform.position.x, HealTarget.transform.position.y, -6f), Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
+				DrawLine (transform.position, HealTarget.transform.position, new Color (175f / 255f, 249f / 255f, 161f / 255f, 1f));
+				//Level 5 Abilities
+				if (chainHeal)
+					ChainHeal (HealTarget, 2, AttackPower);
+				if (HealBuffArmor) {
+					StopCoroutine ("HealbuffArmor");
+					StartCoroutine ("HealbuffArmor");
+				}
+				TowerAnimator.SetBool ("StartHealing", true);
+			}
 			AttackCD = maxAttackCD;
 		}
 	}
 
-	void DrawLine (Vector3 start, Vector3 end, Color color, float duration = 0.2f)
+	IEnumerator HealbuffArmor ()
+	{
+		ArmorBuffer = Mathf.Max (1.2f, ArmorBuffer);
+		yield return new WaitForSeconds (5f);
+		ArmorBuffer = 1f;
+	}
+
+	void ChainHeal (GameObject from, int jumpTime, float healAmount)
+	{
+		if (jumpTime == 0)
+			return;
+		Collider2D[] hits = Physics2D.OverlapCircleAll (from.transform.position, 1.5f);
+		float minHealth = 30000f;
+		GameObject minHealee = null;
+		foreach (Collider2D hit in hits) {
+			if (hit != null && hit.gameObject.tag == "Tower" && hit.gameObject != from && hit.gameObject.GetComponent<TowerControl> ().Injured () && hit.gameObject.GetComponent<TowerControl> ().isFunctioning ()) {
+				float curHealth = hit.gameObject.GetComponent<TowerControl> ().getHealth ();
+				if (curHealth < minHealth) {
+					minHealth = curHealth;
+					minHealee = hit.gameObject;
+				}
+			}
+		}
+		if (minHealee != null) {
+			minHealee.GetComponent<TowerControl> ().TakeDamage (-1f * healAmount);
+			Instantiate (HealingEffect, new Vector3 (minHealee.transform.position.x, minHealee.transform.position.y, -6f), Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
+			DrawLine (from.transform.position, minHealee.transform.position, new Color (175f / 255f, 249f / 255f, 161f / 255f, 1f));
+			ChainHeal (minHealee, jumpTime - 1, 0.5f * healAmount);
+		}
+
+	}
+
+	void DrawLine (Vector3 start, Vector3 end, Color color, float duration = 0.3f)
 	{
 		start = new Vector3 (start.x, start.y, -3f);
 		end = new Vector3 (end.x, end.y, -3f);
@@ -297,7 +349,7 @@ public class TowerControl : MonoBehaviour
 			TowerAnimator.SetBool ("StartAttack", true);
 
 			GameObject bullet = (GameObject)Instantiate (RangeBulletPrefab, hitPos.position, Quaternion.identity);
-			bullet.GetComponent<RangeBulletControl> ().SetTarget (RangeTarget, AttackPower, false);
+			bullet.GetComponent<RangeBulletControl> ().SetTarget (RangeTarget, AttackPower, false, bleed, coldBullet);
 			AttackCD = maxAttackCD;
 		}
 	}
@@ -331,6 +383,8 @@ public class TowerControl : MonoBehaviour
 			foreach (Collider2D hit in hits) {
 				if (hit != null && hit.gameObject.tag == "Enemy") {
 					hit.gameObject.SendMessage ("TakeDamage", AttackPower);
+					// Level 5 Leech Ability
+					TakeDamage (-leech * AttackPower);
 				}
 			}
 			AttackCD = maxAttackCD;
@@ -344,13 +398,21 @@ public class TowerControl : MonoBehaviour
 
 	public bool AbsorbOtherTower (TowerInfo oTI)
 	{
-		if (TI.Equals (oTI) && GameManager.GM.hasEnoughCoin (TowerInfoToMergeCoin (TI)) && TowerLevel <= 4) {
+		if (TI.Equals (oTI) && GameManager.GM.hasEnoughCoin (TowerInfoToMergeCoin (TI)) && TowerLevel < 4) {
 			// Consume Coin to merge
 			GameManager.GM.AddCoin (-TowerInfoToMergeCoin (TI));
 			// Instantiate Level up effect
 			Instantiate (GameManager.GM.LevelUpEffect, transform.position, Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
 			// Level up and gain numeric powerup
 			LevelUp (oTI.currentHealth);
+			return true;
+		} else if (TowerLevel == 4 && GameManager.GM.hasEnoughCoin (TowerInfoToMergeCoin (TI)) && TI.CanMixMergeWith (oTI)) {
+			// Consume Coin to merge
+			GameManager.GM.AddCoin (-TowerInfoToMergeCoin (TI));
+			// Instantiate Level up effect
+			Instantiate (GameManager.GM.LevelUpEffect, transform.position, Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
+			// Level up and gain numeric powerup
+			LevelUp (oTI.currentHealth, oTI);
 			return true;
 		} else {
 			return false;
@@ -367,25 +429,73 @@ public class TowerControl : MonoBehaviour
 		TI.level = TowerLevel;
 	}
 
+	void LevelUp (float otherTHealth, TowerInfo oTI)
+	{
+		LevelUp (otherTHealth);
+		TI.setSubTowerType (oTI.thisTowerType);
+		ActivateNewAbility ();
+	}
+
+	void ActivateNewAbility ()
+	{
+		if (TT == TowerType.Tank && TI.subTowerType == TowerType.Tank) {
+			maxdodgeRate = 0.25f;
+			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [0];
+		}
+		if (TT == TowerType.Tank && TI.subTowerType == TowerType.Range) {
+			thorn = true;
+			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [1];
+		}
+		if (TT == TowerType.Tank && TI.subTowerType == TowerType.Heal) {
+			leech = 0.5f;
+			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [2];
+		}
+		if (TT == TowerType.Range && TI.subTowerType == TowerType.Range) {
+			bleed = true;
+			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [3];
+		}
+		if (TT == TowerType.Range && TI.subTowerType == TowerType.Tank) {
+			coldBullet = true;
+			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [4];
+		}
+		if (TT == TowerType.Range && TI.subTowerType == TowerType.Heal) {
+			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [5];
+		}
+		if (TT == TowerType.Heal && TI.subTowerType == TowerType.Heal) {
+			chainHeal = true;
+			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [6];
+		}
+		if (TT == TowerType.Heal && TI.subTowerType == TowerType.Tank) {
+			HealBuffArmor = true;
+			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [7];
+		}
+		if (TT == TowerType.Heal && TI.subTowerType == TowerType.Range) {
+			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [8];
+		}
+		if (TT == TowerType.Missile && TI.subTowerType == TowerType.Missile) {
+
+		}
+	}
+
 	public void TempBuff (float APBuff, float ArmorBuff, float AttackCDBuff, float duration)
 	{
 		StartCoroutine (tempBuff (AttackPowerBuffer, ArmorBuffer, AttackCDBuffer, duration));
-		AttackPowerBuffer = APBuff;
-		ArmorBuffer = ArmorBuff;
-		AttackCDBuffer = AttackCDBuff;
+		AttackPowerBuffer = Mathf.Max (AttackPowerBuffer, APBuff);
+		ArmorBuffer = Mathf.Max (ArmorBuff, ArmorBuffer);
+		AttackCDBuffer = Mathf.Max (AttackCDBuff, AttackCDBuffer);
 	}
 
 	IEnumerator tempBuff (float OriginalAPBuffer, float OriginalArmorBuffer, float OriginalAttackCDBuffer, float duration)
 	{
 		GameObject buffEffect = Instantiate (GameManager.GM.BuffEffect, new Vector3 (transform.position.x, transform.position.y, -8f), Quaternion.Euler (new Vector3 (-90f, 0f)), transform);
 		yield return new WaitForSeconds (duration);
-		AttackPowerBuffer = OriginalAPBuffer;
-		ArmorBuffer = OriginalArmorBuffer;
-		AttackCDBuffer = OriginalAttackCDBuffer;
+		AttackPowerBuffer = 1f;
+		ArmorBuffer = 1f;
+		AttackCDBuffer = 1f;
 		Destroy (buffEffect);
 	}
 
-	public void TakeDamage (float dmg)
+	public void TakeDamage (float dmg, GameObject caller = null)
 	{
 		// if dmg < 0, then it's healing, else it's damage
 		if (dmg <= 0f) {
@@ -394,8 +504,15 @@ public class TowerControl : MonoBehaviour
 				Health = maxHealth;
 			StartCoroutine (flashYellow ());
 		} else {
+			//Level 5 Dodge Spell
+			if (dodgedAttack ())
+				return;
+			dmg *= (1f - Armor);
+			//Level 5 thorn spell
+			if (thorn && caller != null)
+				Thorn (dmg, caller);
 			HealthBar.GetComponent<SpriteRenderer> ().color = Color.red;
-			Health -= (dmg * (1f - Armor));
+			Health -= dmg;
 		}
 			
 		StartCoroutine ("flashRed");
@@ -408,6 +525,23 @@ public class TowerControl : MonoBehaviour
 		}
 	}
 
+	void Thorn (float dmg, GameObject enforcer)
+	{
+		enforcer.SendMessage ("TakeDamage", 0.2f * dmg);
+	}
+
+	bool dodgedAttack ()
+	{
+		float rand = Random.Range (0f, 1f);
+		if (rand < maxdodgeRate) {
+			//Dodge
+			GameObject popupCoin = (GameObject)Instantiate (GameManager.GM.PopTextPrefab, Camera.main.WorldToScreenPoint (transform.position), Quaternion.identity, GameObject.Find ("MainCanvas").transform);
+			popupCoin.GetComponent<PopupCoin> ().setText ("Miss");
+			return true;
+		} else
+			return false;
+	}
+
 	public string[] getTowerInfos ()
 	{
 		string name = TT.ToString () + " " + convertToRoman (TowerLevel);
@@ -415,6 +549,12 @@ public class TowerControl : MonoBehaviour
 		string Armor = (maxArmor * 100f).ToString (".0#");
 		string AP = maxAttackPower.ToString (".0#");
 		return new string[] { name, health, Armor, AP };
+	}
+
+	public string[] getAbilityInfos ()
+	{
+		string[] infos = AbilityIntroStr.Split (';');
+		return infos;
 	}
 
 	string convertToRoman (int num)

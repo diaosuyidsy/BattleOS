@@ -1,0 +1,9 @@
+DODGE;Defense ability (Passive);25% Chances Dodging an attack
+THORN;Return some of the damage (Passive);20% damage dealt to this Tower returns to the Enemy
+LEECH;Heal itself by some portion of the damage it dealt (Passive);50% damage dealt by this Tower Heals itself
+BLEED;Deal Extra Damage over time (Passive);50% extra damage dealt over 10 secs;
+COLDBULLET;Attack Lowers Enemy Attack Speed (Passive);Deduce 50% Attack Speed and walking speed to Enemy for 3 secs
+SOULLINK;Double Click to link to an nearby Tower;25% Damage transfered to the other Tower as percent health
+CHAINHEAL;Healing Jump to a nearby Tower;Up to 3 Towers, Each jump reduce 50% of the healing
+ARMORBUFF;Healing Buffs Armor;Buffs 20% of current Armor for 5 secs
+ANTIHEAL;Healing Deal Damage to nearby Enemies;50% Healing Done will be spread to all nearby enemies

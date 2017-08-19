@@ -23,6 +23,7 @@ public class GameManager : MonoBehaviour
 	public GameObject LevelUpEffect;
 	public Animator CoinAnimator;
 	public TextAsset TowerAndEnemyNum;
+	public TextAsset TowerAbilityIntros;
 	public string[] PlayerDesignNumberStrs;
 	public Sprite[] EnemySprite;
 	public Sprite[] SmallEnemySprite;
@@ -33,10 +34,13 @@ public class GameManager : MonoBehaviour
 	public GameObject Level1TankTower;
 	public GameObject Level1HealTower;
 	public GameObject Level2MissileTower;
+	public GameObject PopTextPrefab;
 	public Text PlayerHealthText;
 	public GameObject GameOverHolder;
 	public Text[] TowerInfoPanelTexts;
 	public GAui TowerInfoPanel;
+	public Text[] TowerAbilityTexts;
+	public GAui TowerAbilityPanel;
 	public Text ScoreText;
 	public GameObject BuffEffect;
 
@@ -163,10 +167,12 @@ public class GameManager : MonoBehaviour
 		PlayerHealthText.text = PlayerHealth.ToString ();
 	}
 
-	public void onSelectedTower ()
+	public void onSelectedTower (bool showAbility)
 	{
 		if (selectedTower == null) {
 			TowerInfoPanel.MoveOut (GUIAnimSystem.eGUIMove.SelfAndChildren);
+			if (showAbility)
+				TowerAbilityPanel.MoveOut (GUIAnimSystem.eGUIMove.SelfAndChildren);
 			return;
 		}
 		string[] allInfo = selectedTower.GetComponent<TowerControl> ().getTowerInfos ();
@@ -174,6 +180,13 @@ public class GameManager : MonoBehaviour
 			TowerInfoPanelTexts [i].text = allInfo [i];
 		}
 		TowerInfoPanel.MoveIn (GUIAnimSystem.eGUIMove.SelfAndChildren);
+		if (showAbility) {
+			string[] abilityInfo = selectedTower.GetComponent<TowerControl> ().getAbilityInfos ();
+			for (int i = 0; i < TowerAbilityTexts.Length; i++) {
+				TowerAbilityTexts [i].text = abilityInfo [i];
+			}
+			TowerAbilityPanel.MoveIn (GUIAnimSystem.eGUIMove.SelfAndChildren);
+		}
 	}
 
 	public void ForceTargetEnemy (GameObject newTarget)
@@ -226,6 +239,7 @@ public enum TowerType
 public class TowerInfo
 {
 	public TowerType thisTowerType;
+	public TowerType subTowerType;
 	public int level;
 	public float currentHealth;
 
@@ -234,6 +248,7 @@ public class TowerInfo
 		thisTowerType = TowerType.Tank;
 		level = 1;
 		currentHealth = 0f;
+		subTowerType = TowerType.Missile;
 	}
 
 	public TowerInfo (TowerType tt)
@@ -241,6 +256,7 @@ public class TowerInfo
 		thisTowerType = tt;
 		level = 1;
 		currentHealth = 0f;
+		subTowerType = TowerType.Missile;
 	}
 
 	public TowerInfo (TowerType tt, int l)
@@ -248,6 +264,7 @@ public class TowerInfo
 		thisTowerType = tt;
 		level = l;
 		currentHealth = 0f;
+		subTowerType = TowerType.Missile;
 	}
 
 	public TowerInfo (TowerType tt, int l, float health)
@@ -255,6 +272,12 @@ public class TowerInfo
 		thisTowerType = tt;
 		level = l;
 		currentHealth = health;
+		subTowerType = TowerType.Missile;
+	}
+
+	public void setSubTowerType (TowerType tt)
+	{
+		subTowerType = tt;
 	}
 
 	public void setHealth (float health)
@@ -262,8 +285,15 @@ public class TowerInfo
 		currentHealth = health;
 	}
 
+	public bool CanMixMergeWith (TowerInfo other)
+	{
+		if (level != other.level || level != 4)
+			return false;
+		return (thisTowerType == TowerType.Missile && other.thisTowerType == TowerType.Missile) || (thisTowerType != TowerType.Missile && other.thisTowerType != TowerType.Missile);
+	}
+
 	public bool Equals (TowerInfo other)
 	{
-		return  thisTowerType == other.thisTowerType && level == other.level;
+		return  thisTowerType == other.thisTowerType && level == other.level && subTowerType == other.subTowerType;
 	}
 }
