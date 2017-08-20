@@ -13,10 +13,21 @@ public class LevelControl : MonoBehaviour
 	public float spawnIntervals = 5f;
 
 	public int epoch = 0;
-	float Level2ThreshHold = 0f;
-	float Level3ThreshHold = 0f;
-	float Level4ThreshHold = 0f;
-	bool level2Add = true;
+	float ThreshHold1 = 100f;
+	float ThreshHold2 = 100f;
+	int lowerPartLevel = 1;
+	int middlePartLevel = 2;
+	int higherPartLevel = 3;
+	float mdr = 0.8f;
+
+	float minDecadeRate {
+		get {
+			return mdr;
+		}
+		set {
+			mdr = Mathf.Max (0.3f, value);
+		}
+	}
 
 	void Awake ()
 	{
@@ -47,55 +58,53 @@ public class LevelControl : MonoBehaviour
 		yield return new WaitForSeconds (80f);
 		Debug.Log ("Phase 6");
 		StartCoroutine (groupSpawns (10, 4, 2f, 2f));
-		yield return new WaitForSeconds (120f);
+		yield return new WaitForSeconds (130f);
 		Debug.Log ("Phase 7");
-		StartCoroutine (groupSpawns (15, 4, 2f, 2f));
+		while (true) {
+			StartCoroutine (groupSpawns (10, 4, 2f, 2f));
+			yield return new WaitForSeconds (130f);
+		}
 	}
 
-	int epochToEnemyLevel ()
+	//called every epoch
+	int epochToEnemyLevelNew ()
 	{
 		float randomNum = Random.Range (0f, 100f);
-		if (epoch == 20) {
-			Level2ThreshHold = 5f;
-			Level3ThreshHold = Level2ThreshHold;
-			Level4ThreshHold = Level2ThreshHold;
-		}
 		if (epoch > 20) {
-			if (level2Add) {
-				if (Level2ThreshHold <= 75f) {
-					Level2ThreshHold++;
-					Level3ThreshHold++;
-					Level4ThreshHold++;
-				}
-			} else {
-				Level2ThreshHold -= 0.8f;
-			}
+			ThreshHold1 -= minDecadeRate;
 		}
-		if (Level2ThreshHold >= 75f) {
-			level2Add = false;
+		if (epoch > 90) {
+			ThreshHold2 -= minDecadeRate;
 		}
-		if (epoch > 80) {
-			if (Level3ThreshHold <= 85f) {
-				Level3ThreshHold++;
-				Level4ThreshHold++;
-			}
+		if (ThreshHold1 <= 0f) {
+			ThreshHold1 = 100f;
+			minDecadeRate -= 0.2f;
+			lowerPartLevel++;
+			middlePartLevel++;
+			higherPartLevel++;
 		}
+		if (ThreshHold2 <= 0f) {
+			ThreshHold2 = 100f;
+			minDecadeRate -= 0.2f;
+			lowerPartLevel++;
+			middlePartLevel++;
+			higherPartLevel++;
+		}
+		float smallerHold = Mathf.Min (ThreshHold1, ThreshHold2);
+		float biggerHold = Mathf.Max (ThreshHold1, ThreshHold2);
+		ConsoleProDebug.Watch ("Lower Thresh Hold", smallerHold.ToString ());
+		ConsoleProDebug.Watch ("Higher Thresh Hold", biggerHold.ToString ());
+		ConsoleProDebug.Watch ("Min Decade Rate", minDecadeRate.ToString ());
+		ConsoleProDebug.Watch ("lowerPartLevel", lowerPartLevel.ToString ());
+		ConsoleProDebug.Watch ("middlePartLevel", middlePartLevel.ToString ());
+		ConsoleProDebug.Watch ("higherPartLevel", higherPartLevel.ToString ());
 
-		if (epoch > 140) {
-			if (Level4ThreshHold <= 92f)
-				Level4ThreshHold += 0.2f;
-		}
-		ConsoleProDebug.Watch ("Level 2 Threshold: ", Level2ThreshHold.ToString ());
-		ConsoleProDebug.Watch ("Level 3 Threshold: ", Level3ThreshHold.ToString ());
-		ConsoleProDebug.Watch ("Level 4 Threshold: ", Level4ThreshHold.ToString ());
-		if (randomNum <= Level2ThreshHold) {
-			return 2;
-		} else if (randomNum <= Level3ThreshHold) {
-			return 3;
-		} else if (randomNum <= Level4ThreshHold) {
-			return 4;
+		if (randomNum <= smallerHold) {
+			return lowerPartLevel;
+		} else if (randomNum <= biggerHold) {
+			return middlePartLevel;
 		} else {
-			return 1;
+			return higherPartLevel;
 		}
 	}
 
@@ -107,8 +116,8 @@ public class LevelControl : MonoBehaviour
 			LevelControl.LC.EnemySpawns [0].SetActive (true);
 		if (epoch == 20)
 			LevelControl.LC.EnemySpawns [4].SetActive (true);
-		ConsoleProDebug.Watch ("Epoch#: ", epoch.ToString ());
-		int level = epochToEnemyLevel ();
+		ConsoleProDebug.Watch ("Epoch#", epoch.ToString ());
+		int level = epochToEnemyLevelNew ();
 		int randomIndex = Random.Range (0, EnemySpawns.Length);
 		while (!EnemySpawns [randomIndex].activeSelf) {
 			randomIndex = Random.Range (0, EnemySpawns.Length);
@@ -140,7 +149,7 @@ public class LevelControl : MonoBehaviour
 	IEnumerator constantlyAddCoins ()
 	{
 		GameManager.GM.AddCoin (1);
-		yield return new WaitForSeconds (5f);
+		yield return new WaitForSeconds (minDecadeRate * 5f);
 		StartCoroutine (constantlyAddCoins ());
 	}
 

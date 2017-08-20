@@ -110,7 +110,6 @@ public class EnemyControl : MonoBehaviour
 	{
 		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;
 		EnemyAnimator = SpriteAndAnimation.GetComponent<Animator> ();
-		setLevel (8);
 	}
 
 	public void setLevel (int level)
@@ -161,7 +160,7 @@ public class EnemyControl : MonoBehaviour
 			maxAttackPower *= 2f;
 			maxArmor *= 1.01f;
 			maxAttackCD /= 1.01f;
-			Coins++;
+			Coins *= 2;
 		}
 	}
 
@@ -191,13 +190,13 @@ public class EnemyControl : MonoBehaviour
 		}
 	}
 
-	public void startCold (float duration, float rate = 0.5f)
+	public void startCold (float duration, float rate = 0.2f)
 	{
 		StopCoroutine ("cold");
 		StartCoroutine ("cold", rate);
 	}
 
-	IEnumerator cold (float rate = 0.8f)
+	IEnumerator cold (float rate = 0.2f)
 	{
 		WalkingSpBuffer = rate;
 		AttackCDBuffer = rate;

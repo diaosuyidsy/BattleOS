@@ -7,6 +7,7 @@ public class TowerControl : MonoBehaviour
 {
 	public TowerInfo TI;
 	public TowerType TT;
+	public TowerType subT = TowerType.Missile;
 	public int TowerLevel = 1;
 	public float maxHealth;
 	public float maxAttackPower;
@@ -112,7 +113,7 @@ public class TowerControl : MonoBehaviour
 		thisColor = HealthBar.GetComponent<SpriteRenderer> ().color;
 		AttackCD = maxAttackCD;
 		Health = maxHealth;
-		TI = new TowerInfo (TT, TowerLevel, Health);
+		TI = new TowerInfo (TT, TowerLevel, Health, subT);
 	}
 
 	void setParam ()
@@ -499,49 +500,52 @@ public class TowerControl : MonoBehaviour
 	{
 		LevelUp (otherTHealth);
 		TI.setSubTowerType (oTI.thisTowerType);
+		subT = oTI.thisTowerType;
 		ActivateNewAbility ();
 	}
 
 	void ActivateNewAbility ()
 	{
-		if (TT == TowerType.Tank && TI.subTowerType == TowerType.Tank) {
+		if (TowerLevel != 5)
+			return;
+		if (TT == TowerType.Tank && subT == TowerType.Tank) {
 			maxdodgeRate = 0.25f;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [0];
 		}
-		if (TT == TowerType.Tank && TI.subTowerType == TowerType.Range) {
+		if (TT == TowerType.Tank && subT == TowerType.Range) {
 			thorn = true;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [1];
 		}
-		if (TT == TowerType.Tank && TI.subTowerType == TowerType.Heal) {
+		if (TT == TowerType.Tank && subT == TowerType.Heal) {
 			leech = 0.5f;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [2];
 		}
-		if (TT == TowerType.Range && TI.subTowerType == TowerType.Range) {
+		if (TT == TowerType.Range && subT == TowerType.Range) {
 			bleed = true;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [3];
 		}
-		if (TT == TowerType.Range && TI.subTowerType == TowerType.Tank) {
+		if (TT == TowerType.Range && subT == TowerType.Tank) {
 			coldBullet = true;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [4];
 		}
-		if (TT == TowerType.Range && TI.subTowerType == TowerType.Heal) {
+		if (TT == TowerType.Range && subT == TowerType.Heal) {
 			linkSoul ();
 			GetComponent<PlayerControl> ().setSoulLink (true);
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [5];
 		}
-		if (TT == TowerType.Heal && TI.subTowerType == TowerType.Heal) {
+		if (TT == TowerType.Heal && subT == TowerType.Heal) {
 			chainHeal = true;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [6];
 		}
-		if (TT == TowerType.Heal && TI.subTowerType == TowerType.Tank) {
+		if (TT == TowerType.Heal && subT == TowerType.Tank) {
 			HealBuffArmor = true;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [7];
 		}
-		if (TT == TowerType.Heal && TI.subTowerType == TowerType.Range) {
+		if (TT == TowerType.Heal && subT == TowerType.Range) {
 			antiHeal = true;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [8];
 		}
-		if (TT == TowerType.Missile && TI.subTowerType == TowerType.Missile) {
+		if (TT == TowerType.Missile && subT == TowerType.Missile) {
 
 		}
 	}
@@ -691,20 +695,22 @@ public class TowerControl : MonoBehaviour
 	public int thisTowerToRepCoin ()
 	{
 		int baseRepCoin = 10;
-		baseRepCoin *= TowerLevel;
+		for (int i = 1; i < TowerLevel; i++) {
+			baseRepCoin *= 2;
+		}
 		return baseRepCoin;
 	}
 
 	public float thisTowerToRepTime ()
 	{
-		float baseTime = 15f;
-		switch (TT) {
-		case TowerType.Tank:
-		case TowerType.Heal:
-		case TowerType.Range:
-			break;
-		}
-		baseTime *= TowerLevel;
+		float baseTime = 12f;
+//		switch (TT) {
+//		case TowerType.Tank:
+//		case TowerType.Heal:
+//		case TowerType.Range:
+//			break;
+//		}
+//		baseTime *= TowerLevel;
 		return baseTime;
 	}
 

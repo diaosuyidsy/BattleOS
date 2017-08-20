@@ -275,6 +275,14 @@ public class TowerInfo
 		subTowerType = TowerType.Missile;
 	}
 
+	public TowerInfo (TowerType tt, int l, float health, TowerType subt)
+	{
+		thisTowerType = tt;
+		level = l;
+		currentHealth = health;
+		subTowerType = subt;
+	}
+
 	public void setSubTowerType (TowerType tt)
 	{
 		subTowerType = tt;
