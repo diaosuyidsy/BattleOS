@@ -12,12 +12,14 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	public bool isDraggedOver = false;
 	public GameObject towerRangeImage;
 
+
 	Vector3 StartPosition;
 	Transform StartParent;
 	GameObject shadowImage;
 	GameObject draggedOver;
 	bool startClicking = false;
 	float clickCD = 0f;
+	public bool soulLink = false;
 
 	void Update ()
 	{
@@ -83,6 +85,13 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 			transform.parent = minSlot;
 			transform.localPosition = Vector3.zero;
 		}
+		//Level 5 ablity soul link
+		if (soulLink) {
+			GetComponent<TowerControl> ().linkSoul ();
+		}
+		if (GetComponent<TowerControl> ().linkedSoul != null) {
+			GetComponent<TowerControl> ().linkedSoul.SendMessage ("linkSoul");
+		}
 		// If Dragged to ProductionSlot; Create an Image there
 		if (minSlot.gameObject.tag == "ProductionSlot") {
 			transform.parent = StartParent;
@@ -127,6 +136,10 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 				GameManager.GM.selectedTower.GetComponent<PlayerControl> ().towerRangeImage.SetActive (false);
 				GameManager.GM.selectedTower = gameObject;
 				towerRangeImage.SetActive (true);
+			}
+			//Level 5 soul link ability
+			if (GameManager.GM.selectedTower == gameObject && soulLink) {
+				GetComponent<TowerControl> ().linkSoul ();
 			}
 			GameManager.GM.onSelectedTower (GetComponent<TowerControl> ().TowerLevel > 4 && GetComponent<TowerControl> ().TT != TowerType.Missile);
 		}
@@ -192,5 +205,10 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	{
 		if (other.tag == "FortifySpell")
 			transform.parent.GetComponent<SpriteRenderer> ().color = Color.white;
+	}
+
+	public void setSoulLink (bool y)
+	{
+		soulLink = y;
 	}
 }

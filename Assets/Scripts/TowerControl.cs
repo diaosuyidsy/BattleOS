@@ -95,6 +95,9 @@ public class TowerControl : MonoBehaviour
 	bool coldBullet = false;
 	bool chainHeal = false;
 	bool HealBuffArmor = false;
+	bool antiHeal = false;
+	public GameObject linkedSoul = null;
+	public GameObject linkedLine = null;
 
 	void Start ()
 	{
@@ -218,16 +221,28 @@ public class TowerControl : MonoBehaviour
 					StopCoroutine ("HealbuffArmor");
 					StartCoroutine ("HealbuffArmor");
 				}
+				if (antiHeal)
+					antiHealing (HealTarget, AttackPower);
 				TowerAnimator.SetBool ("StartHealing", true);
 			}
 			AttackCD = maxAttackCD;
 		}
 	}
 
+	void antiHealing (GameObject from, float healAmount)
+	{
+		Collider2D[] hits = Physics2D.OverlapCircleAll (from.transform.position, 0.8f);
+		foreach (Collider2D hit in hits) {
+			if (hit != null && hit.gameObject.tag == "Enemy") {
+				hit.gameObject.SendMessage ("TakeDamage", 0.5f * healAmount);
+			}
+		}
+	}
+
 	IEnumerator HealbuffArmor ()
 	{
 		ArmorBuffer = Mathf.Max (1.2f, ArmorBuffer);
-		yield return new WaitForSeconds (5f);
+		yield return new WaitForSeconds (2f);
 		ArmorBuffer = 1f;
 	}
 
@@ -272,6 +287,24 @@ public class TowerControl : MonoBehaviour
 		lr.SetPosition (0, start);
 		lr.SetPosition (1, end);
 		GameObject.Destroy (myLine, duration);
+	}
+
+	void DrawLinePersist (Vector3 start, Vector3 end, Color color)
+	{
+		Destroy (linkedLine);
+		start = new Vector3 (start.x, start.y, -8f);
+		end = new Vector3 (end.x, end.y, -3f);
+		linkedLine = new GameObject ();
+		linkedLine.transform.position = start;
+		linkedLine.AddComponent<LineRenderer> ();
+		LineRenderer lr = linkedLine.GetComponent<LineRenderer> ();
+		lr.material = HealMaterial;
+		lr.startColor = color;
+		lr.endColor = color;
+		lr.startWidth = 0.06f;
+		lr.endWidth = 0.06f;
+		lr.SetPosition (0, start);
+		lr.SetPosition (1, end);
 	}
 
 	void MissileAttack ()
@@ -352,6 +385,39 @@ public class TowerControl : MonoBehaviour
 			bullet.GetComponent<RangeBulletControl> ().SetTarget (RangeTarget, AttackPower, false, bleed, coldBullet);
 			AttackCD = maxAttackCD;
 		}
+	}
+
+	public void linkSoul ()
+	{
+		Collider2D[] hits = Physics2D.OverlapCircleAll (transform.position, Range_Range);
+		float minPercentHealth = 1.1f;
+		GameObject minHealee = null;
+		foreach (Collider2D hit in hits) {
+			if (hit != null && hit.gameObject.tag == "Tower" && hit.gameObject.GetComponent<TowerControl> ().isFunctioning ()) {
+				float curPHealth = hit.gameObject.GetComponent<TowerControl> ().getPercentHealth ();
+				if (curPHealth <= minPercentHealth) {
+					minPercentHealth = curPHealth;
+					minHealee = hit.gameObject;
+				}
+			}
+		}
+		if (minHealee != null && minHealee != gameObject) {
+			DrawLinePersist (transform.position, minHealee.transform.position, new Color (255f / 255f, 217f / 255f, 94f / 255f, 189f / 255f));
+			linkedSoul = minHealee;
+			minHealee.GetComponent<TowerControl> ().setLinkedSoul (gameObject, linkedLine);
+		} else {
+			if (linkedSoul != null) {
+				linkedSoul.GetComponent<TowerControl> ().setLinkedSoul (null, null);
+			}
+			linkedSoul = null;
+			Destroy (linkedLine);
+		}
+	}
+
+	public void setLinkedSoul (GameObject from, GameObject line)
+	{
+		linkedSoul = from;
+		linkedLine = line;
 	}
 
 	void meleeAttacking ()
@@ -459,6 +525,8 @@ public class TowerControl : MonoBehaviour
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [4];
 		}
 		if (TT == TowerType.Range && TI.subTowerType == TowerType.Heal) {
+			linkSoul ();
+			GetComponent<PlayerControl> ().setSoulLink (true);
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [5];
 		}
 		if (TT == TowerType.Heal && TI.subTowerType == TowerType.Heal) {
@@ -470,6 +538,7 @@ public class TowerControl : MonoBehaviour
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [7];
 		}
 		if (TT == TowerType.Heal && TI.subTowerType == TowerType.Range) {
+			antiHeal = true;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [8];
 		}
 		if (TT == TowerType.Missile && TI.subTowerType == TowerType.Missile) {
@@ -495,6 +564,22 @@ public class TowerControl : MonoBehaviour
 		Destroy (buffEffect);
 	}
 
+	public void TakeDamageFromLinkedSoul (float dmgPercent, float dmg)
+	{
+		float dmgTaken = Mathf.Min (dmg, maxHealth * dmgPercent);
+		dmgTaken *= (1f - Armor);
+		HealthBar.GetComponent<SpriteRenderer> ().color = Color.red;
+		Health -= dmgTaken;
+		StartCoroutine ("flashRed");
+		// Decrease HealthBar
+		HealthBarControl (Health);
+		TI.setHealth (Health);
+		if (Health <= 0f) {
+			Instantiate (TowerDestrucitonEffect, transform.position, Quaternion.identity);
+			Destroy (gameObject);
+		}
+	}
+
 	public void TakeDamage (float dmg, GameObject caller = null)
 	{
 		// if dmg < 0, then it's healing, else it's damage
@@ -511,6 +596,11 @@ public class TowerControl : MonoBehaviour
 			//Level 5 thorn spell
 			if (thorn && caller != null)
 				Thorn (dmg, caller);
+			//Level 5 soul link spell
+			if (linkedSoul != null && linkedSoul.GetComponent<TowerControl> ().getPercentHealth () >= 0.2f) {
+				dmg /= 2f;
+				linkedSoul.GetComponent<TowerControl> ().TakeDamageFromLinkedSoul (dmg / maxHealth, dmg);
+			}
 			HealthBar.GetComponent<SpriteRenderer> ().color = Color.red;
 			Health -= dmg;
 		}
@@ -663,5 +753,21 @@ public class TowerControl : MonoBehaviour
 	public float getHealth ()
 	{
 		return Health;
+	}
+
+	public float getPercentHealth ()
+	{
+		return Health / maxHealth;
+	}
+
+	void OnDestroy ()
+	{
+		if (GetComponent<PlayerControl> ().soulLink) {
+			//Then this is the linker
+			Destroy (linkedLine);
+		} else if (linkedSoul != null) {
+			// it's the linkee
+			linkedSoul.GetComponent<TowerControl> ().linkSoul ();
+		}
 	}
 }
