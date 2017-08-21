@@ -114,6 +114,7 @@ public class TowerControl : MonoBehaviour
 		AttackCD = maxAttackCD;
 		Health = maxHealth;
 		TI = new TowerInfo (TT, TowerLevel, Health, subT);
+		ActivateNewAbility ();
 	}
 
 	void setParam ()
@@ -235,7 +236,7 @@ public class TowerControl : MonoBehaviour
 		Collider2D[] hits = Physics2D.OverlapCircleAll (from.transform.position, 0.8f);
 		foreach (Collider2D hit in hits) {
 			if (hit != null && hit.gameObject.tag == "Enemy") {
-				hit.gameObject.SendMessage ("TakeDamage", 0.5f * healAmount);
+				hit.gameObject.SendMessage ("TakeDamage", 0.25f * healAmount);
 			}
 		}
 	}
@@ -267,7 +268,7 @@ public class TowerControl : MonoBehaviour
 			minHealee.GetComponent<TowerControl> ().TakeDamage (-1f * healAmount);
 			Instantiate (HealingEffect, new Vector3 (minHealee.transform.position.x, minHealee.transform.position.y, -6f), Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
 			DrawLine (from.transform.position, minHealee.transform.position, new Color (175f / 255f, 249f / 255f, 161f / 255f, 1f));
-			ChainHeal (minHealee, jumpTime - 1, 0.5f * healAmount);
+			ChainHeal (minHealee, jumpTime - 1, 0.3f * healAmount);
 		}
 
 	}
@@ -465,7 +466,7 @@ public class TowerControl : MonoBehaviour
 
 	public bool AbsorbOtherTower (TowerInfo oTI)
 	{
-		if (TI.Equals (oTI) && GameManager.GM.hasEnoughCoin (TowerInfoToMergeCoin (TI)) && TowerLevel < 4) {
+		if (TI.Equals (oTI) && GameManager.GM.hasEnoughCoin (TowerInfoToMergeCoin (TI)) && TowerLevel != 4) {
 			// Consume Coin to merge
 			GameManager.GM.AddCoin (-TowerInfoToMergeCoin (TI));
 			// Instantiate Level up effect
@@ -506,7 +507,7 @@ public class TowerControl : MonoBehaviour
 
 	void ActivateNewAbility ()
 	{
-		if (TowerLevel != 5)
+		if (TowerLevel < 5)
 			return;
 		if (TT == TowerType.Tank && subT == TowerType.Tank) {
 			maxdodgeRate = 0.25f;
@@ -517,7 +518,7 @@ public class TowerControl : MonoBehaviour
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [1];
 		}
 		if (TT == TowerType.Tank && subT == TowerType.Heal) {
-			leech = 0.5f;
+			leech = 0.25f;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [2];
 		}
 		if (TT == TowerType.Range && subT == TowerType.Range) {
@@ -621,7 +622,7 @@ public class TowerControl : MonoBehaviour
 
 	void Thorn (float dmg, GameObject enforcer)
 	{
-		enforcer.SendMessage ("TakeDamage", 0.2f * dmg);
+		enforcer.SendMessage ("TakeDamage", 0.3f * dmg);
 	}
 
 	bool dodgedAttack ()
@@ -685,6 +686,17 @@ public class TowerControl : MonoBehaviour
 		return baseMergeCoin;
 	}
 
+	int thisTowerInfoTOMergeCoin ()
+	{
+		int baseMergeCoin = 7;
+		for (int i = TowerLevel; i > 1; i--) {
+			baseMergeCoin *= i;
+		}
+		if (TowerLevel == 1)
+			baseMergeCoin = 0;
+		return baseMergeCoin;
+	}
+
 	public static int TowerInfoToRepCoin (TowerInfo ti)
 	{
 		int baseRepCoin = 10;
@@ -698,6 +710,7 @@ public class TowerControl : MonoBehaviour
 		for (int i = 1; i < TowerLevel; i++) {
 			baseRepCoin *= 2;
 		}
+		baseRepCoin += thisTowerInfoTOMergeCoin ();
 		return baseRepCoin;
 	}
 

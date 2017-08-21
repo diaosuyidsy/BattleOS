@@ -190,19 +190,17 @@ public class EnemyControl : MonoBehaviour
 		}
 	}
 
-	public void startCold (float duration, float rate = 0.2f)
+	public void startCold (float duration, float rate = 0.8f)
 	{
 		StopCoroutine ("cold");
 		StartCoroutine ("cold", rate);
 	}
 
-	IEnumerator cold (float rate = 0.2f)
+	IEnumerator cold (float rate = 0.8f)
 	{
-		WalkingSpBuffer = rate;
 		AttackCDBuffer = rate;
 		yield return new WaitForSeconds (3f);
 		Debug.Log ("Back");
-		WalkingSpBuffer = 1f;
 		AttackCDBuffer = 1f;
 	}
 

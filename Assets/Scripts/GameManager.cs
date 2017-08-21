@@ -186,6 +186,8 @@ public class GameManager : MonoBehaviour
 				TowerAbilityTexts [i].text = abilityInfo [i];
 			}
 			TowerAbilityPanel.MoveIn (GUIAnimSystem.eGUIMove.SelfAndChildren);
+		} else {
+			TowerAbilityPanel.MoveOut (GUIAnimSystem.eGUIMove.SelfAndChildren);
 		}
 	}
 
@@ -224,7 +226,10 @@ public class GameManager : MonoBehaviour
 
 	public void PauseGame ()
 	{
-		Time.timeScale = 0f;
+		if (Time.timeScale > 0.5f)
+			Time.timeScale = 0f;
+		else
+			Time.timeScale = 1f;
 	}
 }
 

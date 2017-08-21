@@ -25,7 +25,7 @@ public class LevelControl : MonoBehaviour
 			return mdr;
 		}
 		set {
-			mdr = Mathf.Max (0.3f, value);
+			mdr = Mathf.Max (0.5f, value);
 		}
 	}
 
