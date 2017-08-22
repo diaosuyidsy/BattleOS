@@ -20,14 +20,14 @@ public class LevelControl : MonoBehaviour
 	int higherPartLevel = 3;
 	float mdr = 0.8f;
 	int perMultiSpawn = 4;
-	float waitTime = 120f;
+	float waitTime = 130f;
 
 	float minDecadeRate {
 		get {
 			return mdr;
 		}
 		set {
-			mdr = Mathf.Max (0.6f, value);
+			mdr = Mathf.Max (0.5f, value);
 		}
 	}
 
@@ -94,14 +94,11 @@ public class LevelControl : MonoBehaviour
 		}
 		float smallerHold = Mathf.Min (ThreshHold1, ThreshHold2);
 		float biggerHold = Mathf.Max (ThreshHold1, ThreshHold2);
-		if (smallerHold <= 30f) {
+		if (smallerHold <= 15f) {
 			perMultiSpawn = 5;
-			waitTime = 135f;
-		} else if (smallerHold <= 20f) {
-			perMultiSpawn = 6;
 			waitTime = 140f;
-		} else {
-			perMultiSpawn = 7;
+		} else if (smallerHold <= 7f) {
+			perMultiSpawn = 6;
 			waitTime = 145f;
 		}
 		ConsoleProDebug.Watch ("Lower Thresh Hold", smallerHold.ToString ());
