@@ -19,7 +19,7 @@ public class PopupCoin : MonoBehaviour
 
 	public void setText (int coinamount)
 	{
-		CoinText.text = coinamount.ToString ();
+		CoinText.text = GameManager.GM.NumToString (coinamount);
 	}
 
 	public void setText (string str)

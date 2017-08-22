@@ -97,7 +97,7 @@ public class ReproduceControl : MonoBehaviour
 		// Set up need coin for production
 		productionCoin = TC.thisTowerToRepCoin ();
 		// Active the starter
-		GameManager.GM.ProductionStarters [siblingIndex].transform.GetChild (1).GetComponent<Text> ().text = productionCoin.ToString ();
+		GameManager.GM.ProductionStarters [siblingIndex].transform.GetChild (1).GetComponent<Text> ().text = GameManager.GM.NumToString (productionCoin);
 
 		GameManager.GM.ProductionStarters [siblingIndex].SetActive (true);
 		GameManager.GM.AddCoin (0);

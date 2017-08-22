@@ -11,7 +11,13 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 	public GameObject BlurBorder;
 	public GameObject ProgressBarHolder;
 	public GameObject ActiveRange;
-	public int coinNeeded;
+
+	public int coinNeeded {
+		get {
+			return fortifyCoin ();
+		}
+	}
+
 	public Text coinText;
 	public float maxProduceTime;
 	public GAui SpellPanel;
@@ -30,12 +36,22 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 	// Use this for initialization
 	void Start ()
 	{
-		coinText.text = coinNeeded.ToString ();
+		coinText.text = GameManager.GM.NumToString (coinNeeded);
 		if (!GameManager.GM.hasEnoughCoin_Plain (coinNeeded))
 			coinText.color = Color.red;
 		spriteColor = SpellSprite.GetComponent<SpriteRenderer> ().color;
 	}
-	
+
+	int fortifyCoin ()
+	{
+		int middleLevel = LevelControl.LC.getMiddleLevel ();
+		int baseCoin = 3;
+		for (int i = 1; i <= middleLevel; i++) {
+			baseCoin *= i;
+		}
+		Debug.Log (baseCoin);
+		return 10 * baseCoin;
+	}
 	// Update is called once per frame
 	void Update ()
 	{

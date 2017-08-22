@@ -42,7 +42,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	{
 		if (towerBeingDragged == null)
 			return;
-		if (_EventData.pointerEnter != gameObject && _EventData.pointerEnter.tag == "Tower") {
+		if (_EventData.pointerEnter != null && _EventData.pointerEnter != gameObject && _EventData.pointerEnter.tag == "Tower") {
 			draggedOver = _EventData.pointerEnter;
 			if (GetComponent<TowerControl> ().TI.Equals (draggedOver.GetComponent<TowerControl> ().TI) || GetComponent<TowerControl> ().TI.CanMixMergeWith (draggedOver.GetComponent<TowerControl> ().TI))
 				draggedOver.GetComponent<PlayerControl> ().isDraggedOver = true;
@@ -152,7 +152,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 			return;
 		transform.localScale = new Vector3 (1f, 1f, 1f);
 		int coin = TowerControl.TowerInfoToMergeCoin (GetComponent<TowerControl> ().TI);
-		GameManager.GM.ConsumeCoinHolder.GetComponentInChildren<Text> ().text = "-" + coin.ToString ();
+		GameManager.GM.ConsumeCoinHolder.GetComponentInChildren<Text> ().text = "-" + GameManager.GM.NumToString (coin);
 		GameManager.GM.ConsumeCoinHolder.SetActive (true);
 	}
 

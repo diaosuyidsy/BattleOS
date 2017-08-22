@@ -43,6 +43,7 @@ public class GameManager : MonoBehaviour
 	public GAui TowerAbilityPanel;
 	public Text ScoreText;
 	public GameObject BuffEffect;
+	public string[] myNumFix;
 
 	private int score;
 	private int PlayerHealth = 2;
@@ -89,7 +90,7 @@ public class GameManager : MonoBehaviour
 	public void AddCoin (int amount)
 	{
 		Coins += amount;
-		CoinText.text = Coins.ToString ();
+		CoinText.text = NumToString (Coins);
 		// Each time coin change, Check stuff
 		for (int i = 0; i < ProductionStarters.Length; i++) {
 			if (ProductionStarters [i].activeSelf) {
@@ -114,7 +115,7 @@ public class GameManager : MonoBehaviour
 	public void onScore (int scorenum)
 	{
 		score += scorenum;
-		ScoreText.text = score.ToString ();
+		ScoreText.text = NumToString (score);
 	}
 
 	public void UnlockSlot ()
@@ -231,6 +232,23 @@ public class GameManager : MonoBehaviour
 		else
 			Time.timeScale = 1f;
 	}
+
+	public string NumToString (int val)
+	{
+		return NumToString (1.0f * val);
+	}
+
+	public string NumToString (float val)
+	{
+		int num = 0;
+		while (val >= 1000f) {
+			num++;
+			val /= 1000f;
+		}
+		string showVal = val.ToString (".#");
+
+		return string.Format ("{0}{1}", showVal, myNumFix [num]);
+	}
 }
 
 public enum TowerType
@@ -307,6 +325,6 @@ public class TowerInfo
 
 	public bool Equals (TowerInfo other)
 	{
-		return  thisTowerType == other.thisTowerType && level == other.level && subTowerType == other.subTowerType;
+		return  thisTowerType == other.thisTowerType && level == other.level;
 	}
 }

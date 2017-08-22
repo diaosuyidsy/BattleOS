@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 public class TowerControl : MonoBehaviour
 {
@@ -192,13 +193,13 @@ public class TowerControl : MonoBehaviour
 	{
 		Collider2D[] hits = Physics2D.OverlapCircleAll (transform.position, Range_Range);
 		bool hasInjury = false;
-		float minHealth = 30000f;
+		float minHealthPercent = 1.1f;
 		GameObject minHealee = null;
 		foreach (Collider2D hit in hits) {
 			if (hit != null && hit.gameObject.tag == "Tower" && hit.gameObject.GetComponent<TowerControl> ().Injured () && hit.gameObject.GetComponent<TowerControl> ().isFunctioning ()) {
-				float curHealth = hit.gameObject.GetComponent<TowerControl> ().getHealth ();
-				if (curHealth < minHealth) {
-					minHealth = curHealth;
+				float curHealthper = hit.gameObject.GetComponent<TowerControl> ().getPercentHealth ();
+				if (curHealthper < minHealthPercent) {
+					minHealthPercent = curHealthper;
 					minHealee = hit.gameObject;
 				}
 				hasInjury = true;
@@ -217,8 +218,11 @@ public class TowerControl : MonoBehaviour
 				Instantiate (HealingEffect, new Vector3 (HealTarget.transform.position.x, HealTarget.transform.position.y, -6f), Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
 				DrawLine (transform.position, HealTarget.transform.position, new Color (175f / 255f, 249f / 255f, 161f / 255f, 1f));
 				//Level 5 Abilities
-				if (chainHeal)
-					ChainHeal (HealTarget, 2, AttackPower);
+				if (chainHeal) {
+					List<GameObject> Ancesters = new List<GameObject> ();
+					Ancesters.Add (HealTarget);
+					ChainHeal (HealTarget, 2, AttackPower, Ancesters);
+				}
 				if (HealBuffArmor) {
 					StopCoroutine ("HealbuffArmor");
 					StartCoroutine ("HealbuffArmor");
@@ -226,6 +230,7 @@ public class TowerControl : MonoBehaviour
 				if (antiHeal)
 					antiHealing (HealTarget, AttackPower);
 				TowerAnimator.SetBool ("StartHealing", true);
+				HealTarget = null;
 			}
 			AttackCD = maxAttackCD;
 		}
@@ -248,18 +253,18 @@ public class TowerControl : MonoBehaviour
 		ArmorBuffer = 1f;
 	}
 
-	void ChainHeal (GameObject from, int jumpTime, float healAmount)
+	void ChainHeal (GameObject from, int jumpTime, float healAmount, List<GameObject> ancesters)
 	{
 		if (jumpTime == 0)
 			return;
-		Collider2D[] hits = Physics2D.OverlapCircleAll (from.transform.position, 1.5f);
-		float minHealth = 30000f;
+		Collider2D[] hits = Physics2D.OverlapCircleAll (from.transform.position, 3f);
+		float minHealthper = 1.1f;
 		GameObject minHealee = null;
 		foreach (Collider2D hit in hits) {
-			if (hit != null && hit.gameObject.tag == "Tower" && hit.gameObject != from && hit.gameObject.GetComponent<TowerControl> ().Injured () && hit.gameObject.GetComponent<TowerControl> ().isFunctioning ()) {
-				float curHealth = hit.gameObject.GetComponent<TowerControl> ().getHealth ();
-				if (curHealth < minHealth) {
-					minHealth = curHealth;
+			if (hit != null && hit.gameObject.tag == "Tower" && ancesters.All (x => x != hit.gameObject) && hit.gameObject.GetComponent<TowerControl> ().Injured () && hit.gameObject.GetComponent<TowerControl> ().isFunctioning ()) {
+				float curHealth = hit.gameObject.GetComponent<TowerControl> ().getPercentHealth ();
+				if (curHealth < minHealthper) {
+					minHealthper = curHealth;
 					minHealee = hit.gameObject;
 				}
 			}
@@ -268,7 +273,8 @@ public class TowerControl : MonoBehaviour
 			minHealee.GetComponent<TowerControl> ().TakeDamage (-1f * healAmount);
 			Instantiate (HealingEffect, new Vector3 (minHealee.transform.position.x, minHealee.transform.position.y, -6f), Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
 			DrawLine (from.transform.position, minHealee.transform.position, new Color (175f / 255f, 249f / 255f, 161f / 255f, 1f));
-			ChainHeal (minHealee, jumpTime - 1, 0.3f * healAmount);
+			ancesters.Add (minHealee);
+			ChainHeal (minHealee, jumpTime - 1, 0.3f * healAmount, ancesters);
 		}
 
 	}
@@ -461,7 +467,7 @@ public class TowerControl : MonoBehaviour
 
 	public bool Injured ()
 	{
-		return maxHealth - Health >= 0.1f;
+		return Health < maxHealth;
 	}
 
 	public bool AbsorbOtherTower (TowerInfo oTI)
@@ -640,9 +646,9 @@ public class TowerControl : MonoBehaviour
 	public string[] getTowerInfos ()
 	{
 		string name = TT.ToString () + " " + convertToRoman (TowerLevel);
-		string health = Health.ToString (".0#");
-		string Armor = (maxArmor * 100f).ToString (".0#");
-		string AP = maxAttackPower.ToString (".0#");
+		string health = GameManager.GM.NumToString (Health);
+		string Armor = GameManager.GM.NumToString ((maxArmor * 100f));
+		string AP = GameManager.GM.NumToString (maxAttackPower);
 		return new string[] { name, health, Armor, AP };
 	}
 

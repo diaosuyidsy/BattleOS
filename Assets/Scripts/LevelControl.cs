@@ -19,13 +19,15 @@ public class LevelControl : MonoBehaviour
 	int middlePartLevel = 2;
 	int higherPartLevel = 3;
 	float mdr = 0.8f;
+	int perMultiSpawn = 4;
+	float waitTime = 120f;
 
 	float minDecadeRate {
 		get {
 			return mdr;
 		}
 		set {
-			mdr = Mathf.Max (0.5f, value);
+			mdr = Mathf.Max (0.6f, value);
 		}
 	}
 
@@ -61,8 +63,8 @@ public class LevelControl : MonoBehaviour
 		yield return new WaitForSeconds (130f);
 		Debug.Log ("Phase 7");
 		while (true) {
-			StartCoroutine (groupSpawns (10, 4, 2f, 2f));
-			yield return new WaitForSeconds (130f);
+			StartCoroutine (groupSpawns (10, perMultiSpawn, 2f, 2f));
+			yield return new WaitForSeconds (waitTime);
 		}
 	}
 
@@ -92,12 +94,19 @@ public class LevelControl : MonoBehaviour
 		}
 		float smallerHold = Mathf.Min (ThreshHold1, ThreshHold2);
 		float biggerHold = Mathf.Max (ThreshHold1, ThreshHold2);
+		if (smallerHold <= 30f) {
+			perMultiSpawn = 5;
+			waitTime = 135f;
+		} else if (smallerHold <= 20f) {
+			perMultiSpawn = 6;
+			waitTime = 140f;
+		} else {
+			perMultiSpawn = 7;
+			waitTime = 145f;
+		}
 		ConsoleProDebug.Watch ("Lower Thresh Hold", smallerHold.ToString ());
 		ConsoleProDebug.Watch ("Higher Thresh Hold", biggerHold.ToString ());
 		ConsoleProDebug.Watch ("Min Decade Rate", minDecadeRate.ToString ());
-		ConsoleProDebug.Watch ("lowerPartLevel", lowerPartLevel.ToString ());
-		ConsoleProDebug.Watch ("middlePartLevel", middlePartLevel.ToString ());
-		ConsoleProDebug.Watch ("higherPartLevel", higherPartLevel.ToString ());
 
 		if (randomNum <= smallerHold) {
 			return lowerPartLevel;
@@ -153,5 +162,9 @@ public class LevelControl : MonoBehaviour
 		StartCoroutine (constantlyAddCoins ());
 	}
 
-		
+	public int getMiddleLevel ()
+	{
+		return middlePartLevel;
+	}
+
 }
