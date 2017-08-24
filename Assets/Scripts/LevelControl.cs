@@ -21,6 +21,7 @@ public class LevelControl : MonoBehaviour
 	float mdr = 0.8f;
 	int perMultiSpawn = 4;
 	float waitTime = 130f;
+	float minInterval = 2f;
 
 	float minDecadeRate {
 		get {
@@ -63,7 +64,7 @@ public class LevelControl : MonoBehaviour
 		yield return new WaitForSeconds (130f);
 		Debug.Log ("Phase 7");
 		while (true) {
-			StartCoroutine (groupSpawns (10, perMultiSpawn, 2f, 2f));
+			StartCoroutine (groupSpawns (10, perMultiSpawn, minInterval, 2f));
 			yield return new WaitForSeconds (waitTime);
 		}
 	}
@@ -86,6 +87,7 @@ public class LevelControl : MonoBehaviour
 			higherPartLevel++;
 			perMultiSpawn = 4;
 			waitTime = 130f;
+			minInterval = 2f;
 		}
 		if (ThreshHold2 <= 0f) {
 			ThreshHold2 = 100f;
@@ -95,15 +97,21 @@ public class LevelControl : MonoBehaviour
 			higherPartLevel++;
 			perMultiSpawn = 4;
 			waitTime = 130f;
+			minInterval = 2f;
+		}
+		if (higherPartLevel == 5) {
+			minDecadeRate = 0.8f;
 		}
 		float smallerHold = Mathf.Min (ThreshHold1, ThreshHold2);
 		float biggerHold = Mathf.Max (ThreshHold1, ThreshHold2);
 		if (smallerHold <= 15f) {
 			perMultiSpawn = 5;
 			waitTime = 140f;
+			minInterval = 1f;
 		} else if (smallerHold <= 7f) {
 			perMultiSpawn = 6;
 			waitTime = 145f;
+			minInterval = 0.1f;
 		}
 		ConsoleProDebug.Watch ("Lower Thresh Hold", smallerHold.ToString ());
 		ConsoleProDebug.Watch ("Higher Thresh Hold", biggerHold.ToString ());

@@ -24,7 +24,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	void Update ()
 	{
 		if (startClicking)
-			clickCD += Time.deltaTime;
+			clickCD += Time.unscaledDeltaTime;
 	}
 
 	public void OnBeginDrag (PointerEventData _EventData)

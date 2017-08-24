@@ -44,6 +44,7 @@ public class GameManager : MonoBehaviour
 	public GAui TowerAbilityPanel;
 	public Text ScoreText;
 	public GameObject BuffEffect;
+	public GameObject[] TimeButtons;
 	public string[] myNumFix;
 
 	private int score;
@@ -270,6 +271,30 @@ public class GameManager : MonoBehaviour
 			Time.timeScale = 1f;
 	}
 
+	public void slowTime ()
+	{
+		if (Mathf.Approximately (Time.timeScale, 1f)) {
+			Time.timeScale = 0.1f;
+			TimeButtons [0].SetActive (false);
+		}
+		if (Mathf.Approximately (Time.timeScale, 1.5f)) {
+			Time.timeScale = 1f;
+			TimeButtons [1].SetActive (true);
+		}
+	}
+
+	public void fastTime ()
+	{
+		if (Mathf.Approximately (Time.timeScale, 1f)) {
+			Time.timeScale = 1.5f;
+			TimeButtons [1].SetActive (false);
+		}
+		if (Mathf.Approximately (Time.timeScale, 0.1f)) {
+			Time.timeScale = 1f;
+			TimeButtons [0].SetActive (true);
+		}
+	}
+
 	public string NumToString (int val)
 	{
 		return NumToString (1.0f * val);
@@ -278,11 +303,14 @@ public class GameManager : MonoBehaviour
 	public string NumToString (float val)
 	{
 		int num = 0;
+
 		while (val >= 1000f) {
 			num++;
 			val /= 1000f;
 		}
-		string showVal = val.ToString (".#");
+		string showVal = val.ToString ();
+		if (val != 0f)
+			showVal = val.ToString (".#");
 
 		return string.Format ("{0}{1}", showVal, myNumFix [num]);
 	}

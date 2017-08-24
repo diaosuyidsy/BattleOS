@@ -104,8 +104,6 @@ public class EnemyControl : MonoBehaviour
 	float freezeDuration;
 	float freezeRate;
 
-
-
 	void Start ()
 	{
 		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;

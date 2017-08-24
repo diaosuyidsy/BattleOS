@@ -93,7 +93,7 @@ public class TowerControl : MonoBehaviour
 	//Level 5 Abilities
 	bool thorn = false;
 	float leech = 0f;
-	bool bleed = false;
+	bool multiShot = false;
 	bool coldBullet = false;
 	bool chainHeal = false;
 	bool HealBuffArmor = false;
@@ -390,7 +390,10 @@ public class TowerControl : MonoBehaviour
 			TowerAnimator.SetBool ("StartAttack", true);
 
 			GameObject bullet = (GameObject)Instantiate (RangeBulletPrefab, hitPos.position, Quaternion.identity);
-			bullet.GetComponent<RangeBulletControl> ().SetTarget (RangeTarget, AttackPower, false, bleed, coldBullet);
+			bullet.GetComponent<RangeBulletControl> ().SetTarget (RangeTarget, AttackPower, false, false, coldBullet);
+			//Level 5 Ability
+			if (multiShot)
+				RangeMutiShot (RangeTarget, AttackPower * 0.2f);
 			AttackCD = maxAttackCD;
 		}
 	}
@@ -544,7 +547,7 @@ public class TowerControl : MonoBehaviour
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [2];
 		}
 		if (TT == TowerType.Range && subT == TowerType.Range) {
-			bleed = true;
+			multiShot = true;
 			AbilityIntroStr = GameManager.GM.TowerAbilityIntros.text.Split ("\n" [0]) [3];
 		}
 		if (TT == TowerType.Range && subT == TowerType.Tank) {
@@ -617,10 +620,10 @@ public class TowerControl : MonoBehaviour
 			StartCoroutine (flashYellow ());
 		} else {
 			//Level 5 Dodge Spell
-			if (!isSplitDmg && dodgedAttack ())
-				return;
 			if (!isSplitDmg)
 				dmg *= (1f - Armor);
+			if (!isSplitDmg && dodgedAttack ())
+				dmg *= 0.4f;
 			//Level 5 thorn spell
 			if (thorn && caller != null && caller.tag == "Enemy")
 				Thorn (dmg, caller);
@@ -700,16 +703,12 @@ public class TowerControl : MonoBehaviour
 			rightlinked = true;
 		}
 		if (leftLinked && rightlinked) {
-			Debug.Log (3);
 			return 3;
 		} else if (leftLinked) {
-			Debug.Log (1);
 			return 1;
 		} else if (rightlinked) {
-			Debug.Log (2);
 			return 2;
 		} else {
-			Debug.Log (0);
 			return 0;
 		}
 
@@ -733,7 +732,7 @@ public class TowerControl : MonoBehaviour
 		if (rand < maxdodgeRate) {
 			//Dodge
 			GameObject popupCoin = (GameObject)Instantiate (GameManager.GM.PopTextPrefab, Camera.main.WorldToScreenPoint (transform.position), Quaternion.identity, GameObject.Find ("MainCanvas").transform);
-			popupCoin.GetComponent<PopupCoin> ().setText ("Miss");
+			popupCoin.GetComponent<PopupCoin> ().setText ("Block");
 			return true;
 		} else
 			return false;
@@ -890,5 +889,29 @@ public class TowerControl : MonoBehaviour
 			// it's the linkee
 			linkedSoul.GetComponent<TowerControl> ().linkSoul ();
 		}
+	}
+
+	void RangeMutiShot (GameObject originalTarget, float dmg)
+	{
+		bool hasEnemy = false;
+		GameObject minEnemy = null;
+
+		Collider2D[] hits = Physics2D.OverlapCircleAll (transform.position, Range_Range);
+		float minRange = 100f;
+		foreach (Collider2D hit in hits) {
+			if (hit != null && hit.gameObject.tag == "Enemy" && hit.gameObject != originalTarget) {
+				float dist = Vector2.Distance (transform.position, hit.transform.position);
+				if (dist < minRange) {
+					minRange = dist;
+					minEnemy = hit.gameObject;
+				}
+				hasEnemy = true;
+			}
+		}
+		if (hasEnemy) {
+			GameObject bullet = (GameObject)Instantiate (RangeBulletPrefab, hitPos.position, Quaternion.identity);
+			bullet.GetComponent<RangeBulletControl> ().SetTarget (minEnemy, dmg, false, false, coldBullet);
+		}
+
 	}
 }
