@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -33,7 +34,7 @@ public class GameManager : MonoBehaviour
 	public GameObject TargetedEnemy;
 	public GameObject Level1TankTower;
 	public GameObject Level1HealTower;
-	public GameObject Level2MissileTower;
+	public GameObject Level1RangeTower;
 	public GameObject PopTextPrefab;
 	public Text PlayerHealthText;
 	public GameObject GameOverHolder;
@@ -144,9 +145,45 @@ public class GameManager : MonoBehaviour
 					break;
 				}
 			}
-			if (slotIndex <= Slots.Length - 1) {
-				Instantiate (Level2MissileTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
+			GameObject[] towers = GameObject.FindGameObjectsWithTag ("Tower");
+			int healT = 0;
+			int RangeT = 0;
+			int TankT = 0;
+			int HighestL = 0;
+			foreach (GameObject tower in towers) {
+				switch (tower.GetComponent<TowerControl> ().TT) {
+				case TowerType.Tank:
+					TankT++;
+					break;
+				case TowerType.Heal:
+					healT++;
+					break;
+				case TowerType.Range:
+					RangeT++;
+					break;
+				}
+				if (tower.GetComponent<TowerControl> ().TowerLevel > HighestL) {
+					HighestL = tower.GetComponent<TowerControl> ().TowerLevel;
+				}
 			}
+			GameObject a = null;
+			if (healT >= RangeT && healT >= TankT) {
+				if (slotIndex <= Slots.Length - 1) {
+					a = (GameObject)Instantiate (Level1HealTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
+				}
+
+			} else if (RangeT >= TankT && RangeT >= healT) {
+				if (slotIndex <= Slots.Length - 1) {
+					a = (GameObject)Instantiate (Level1RangeTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
+				}
+			} else {
+				if (slotIndex <= Slots.Length - 1) {
+					a = (GameObject)Instantiate (Level1TankTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
+				}
+			}
+			if (a != null)
+				a.GetComponent<TowerControl> ().setLevel (HighestL);
+
 		}
 		if (slotNum == 3) {
 			FortifySpell.SetActive (true);

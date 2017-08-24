@@ -458,7 +458,8 @@ public class TowerControl : MonoBehaviour
 				if (hit != null && hit.gameObject.tag == "Enemy") {
 					hit.gameObject.SendMessage ("TakeDamage", AttackPower);
 					// Level 5 Leech Ability
-					TakeDamage (-leech * AttackPower);
+					if (leech > 0.1f)
+						TakeDamage (-leech * AttackPower);
 				}
 			}
 			AttackCD = maxAttackCD;
@@ -491,6 +492,21 @@ public class TowerControl : MonoBehaviour
 		} else {
 			return false;
 		}
+	}
+
+	public void setLevel (int level)
+	{
+		StartCoroutine (setLevell (level));
+
+	}
+
+	IEnumerator setLevell (int level)
+	{
+		yield return new WaitForSeconds (0f);
+		for (int i = 1; i < Mathf.Min (4, level); i++) {
+			LevelUp (0f);
+		}
+
 	}
 
 	void LevelUp (float otherTHealth)
@@ -591,7 +607,7 @@ public class TowerControl : MonoBehaviour
 		}
 	}
 
-	public void TakeDamage (float dmg, GameObject caller = null)
+	public void TakeDamage (float dmg, GameObject caller = null, bool isSplitDmg = false)
 	{
 		// if dmg < 0, then it's healing, else it's damage
 		if (dmg <= 0f) {
@@ -601,16 +617,25 @@ public class TowerControl : MonoBehaviour
 			StartCoroutine (flashYellow ());
 		} else {
 			//Level 5 Dodge Spell
-			if (dodgedAttack ())
+			if (!isSplitDmg && dodgedAttack ())
 				return;
-			dmg *= (1f - Armor);
+			if (!isSplitDmg)
+				dmg *= (1f - Armor);
 			//Level 5 thorn spell
-			if (thorn && caller != null)
+			if (thorn && caller != null && caller.tag == "Enemy")
 				Thorn (dmg, caller);
 			//Level 5 soul link spell
 			if (linkedSoul != null && linkedSoul.GetComponent<TowerControl> ().getPercentHealth () >= 0.2f) {
 				dmg /= 2f;
 				linkedSoul.GetComponent<TowerControl> ().TakeDamageFromLinkedSoul (dmg / maxHealth, dmg);
+			}
+			//Split Damage as a line for tank tower as default ability
+			if (TT == TowerType.Tank && !isSplitDmg) {
+				int type = isTankLinedTogether ();
+				if (type != 0) {
+					splitDamage (dmg * 0.4f, type, gameObject);
+					dmg *= 0.6f;
+				}
 			}
 			HealthBar.GetComponent<SpriteRenderer> ().color = Color.red;
 			Health -= dmg;
@@ -624,6 +649,77 @@ public class TowerControl : MonoBehaviour
 			Instantiate (TowerDestrucitonEffect, transform.position, Quaternion.identity);
 			Destroy (gameObject);
 		}
+	}
+
+	void splitDamage (float dmg, int linkedType, GameObject caller)
+	{
+		switch (linkedType) {
+		case 1:
+			RaycastHit2D[] hits = Physics2D.RaycastAll (transform.position, Vector2.left, 1f);
+			foreach (RaycastHit2D hit in hits) {
+				if (hit.collider != null && hit.collider.gameObject != gameObject && hit.collider.tag == "Tower" && hit.collider.GetComponent<TowerControl> ().TT == TowerType.Tank) {
+					hit.collider.GetComponent<TowerControl> ().TakeDamage (dmg, caller, true);
+					break;
+				}
+			}
+			break;
+		case 2:
+			hits = Physics2D.RaycastAll (transform.position, Vector2.right, 1f);
+			foreach (RaycastHit2D hit in hits) {
+				if (hit.collider != null && hit.collider.gameObject != gameObject && hit.collider.tag == "Tower" && hit.collider.GetComponent<TowerControl> ().TT == TowerType.Tank) {
+					hit.collider.GetComponent<TowerControl> ().TakeDamage (dmg, caller, true);
+					break;
+				}
+			}
+			break;
+		case 3:
+			dmg /= 2f;
+			hits = Physics2D.LinecastAll (new Vector2 (transform.position.x - 1f, transform.position.y), new Vector2 (transform.position.x + 1f, transform.position.y));
+			foreach (RaycastHit2D hit in hits) {
+				if (hit.collider != null && hit.collider.gameObject != gameObject && hit.collider.tag == "Tower" && hit.collider.GetComponent<TowerControl> ().TT == TowerType.Tank) {
+					hit.collider.GetComponent<TowerControl> ().TakeDamage (dmg, caller, true);
+				}
+			}
+			break;
+		}
+	}
+
+	// return value 0 means not linked
+	// value 1 means left only linked
+	// value 2 means right only linked
+	// value 3 means both linked
+	int isTankLinedTogether ()
+	{
+		bool leftLinked = false, rightlinked = false;
+		RaycastHit2D[] hits = Physics2D.RaycastAll (transform.position, Vector2.left, 1f);
+		if (hits != null && hits.Any (h => h.collider.gameObject != gameObject && h.collider.tag == "Tower" && h.collider.GetComponent<TowerControl> ().TT == TowerType.Tank)) {
+			leftLinked = true;
+		}
+		RaycastHit2D[] hits2 = Physics2D.RaycastAll (transform.position, Vector2.right, 1f);
+		if (hits != null && hits2.Any (h => h.collider.gameObject != gameObject && h.collider.tag == "Tower" && h.collider.GetComponent<TowerControl> ().TT == TowerType.Tank)) {
+			rightlinked = true;
+		}
+		if (leftLinked && rightlinked) {
+			Debug.Log (3);
+			return 3;
+		} else if (leftLinked) {
+			Debug.Log (1);
+			return 1;
+		} else if (rightlinked) {
+			Debug.Log (2);
+			return 2;
+		} else {
+			Debug.Log (0);
+			return 0;
+		}
+
+	}
+
+	void OnDrawGizmosSelected ()
+	{
+		// Display the explosion radius when selected
+		Gizmos.color = new Color (1, 1, 0, 0.75F);
+		Gizmos.DrawWireSphere (transform.position, 1f);
 	}
 
 	void Thorn (float dmg, GameObject enforcer)

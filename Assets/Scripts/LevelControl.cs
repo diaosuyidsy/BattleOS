@@ -27,7 +27,7 @@ public class LevelControl : MonoBehaviour
 			return mdr;
 		}
 		set {
-			mdr = Mathf.Max (0.5f, value);
+			mdr = Mathf.Max (0.4f, value);
 		}
 	}
 
@@ -80,17 +80,21 @@ public class LevelControl : MonoBehaviour
 		}
 		if (ThreshHold1 <= 0f) {
 			ThreshHold1 = 100f;
-			minDecadeRate -= 0.2f;
+			minDecadeRate -= 0.3f;
 			lowerPartLevel++;
 			middlePartLevel++;
 			higherPartLevel++;
+			perMultiSpawn = 4;
+			waitTime = 130f;
 		}
 		if (ThreshHold2 <= 0f) {
 			ThreshHold2 = 100f;
-			minDecadeRate -= 0.2f;
+			minDecadeRate -= 0.3f;
 			lowerPartLevel++;
 			middlePartLevel++;
 			higherPartLevel++;
+			perMultiSpawn = 4;
+			waitTime = 130f;
 		}
 		float smallerHold = Mathf.Min (ThreshHold1, ThreshHold2);
 		float biggerHold = Mathf.Max (ThreshHold1, ThreshHold2);

@@ -211,4 +211,11 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	{
 		soulLink = y;
 	}
+
+	void OnDestroy ()
+	{
+		if (shadowImage != null) {
+			Destroy (shadowImage);
+		}
+	}
 }
