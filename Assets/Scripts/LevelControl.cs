@@ -107,11 +107,11 @@ public class LevelControl : MonoBehaviour
 		if (smallerHold <= 15f) {
 			perMultiSpawn = 5;
 			waitTime = 140f;
-			minInterval = 1f;
+			minInterval = 1.5f;
 		} else if (smallerHold <= 7f) {
 			perMultiSpawn = 6;
 			waitTime = 145f;
-			minInterval = 0.1f;
+			minInterval = 1f;
 		}
 		ConsoleProDebug.Watch ("Lower Thresh Hold", smallerHold.ToString ());
 		ConsoleProDebug.Watch ("Higher Thresh Hold", biggerHold.ToString ());
