@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class EnemyControl : MonoBehaviour
 {
@@ -34,6 +35,7 @@ public class EnemyControl : MonoBehaviour
 	public GameObject HealthBar;
 	public int EnemyLevel = 1;
 	public GameObject TargetedImage;
+	public Text EnemyLevelText;
 
 	private float ACDB = 1f;
 	private float ACD;
@@ -125,6 +127,7 @@ public class EnemyControl : MonoBehaviour
 
 	void setParam ()
 	{
+		EnemyLevelText.text = EnemyLevel.ToString ();
 		if (EnemyLevel % 4 == 1) {
 			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [0];
 

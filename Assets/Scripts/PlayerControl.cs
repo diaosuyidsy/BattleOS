@@ -12,7 +12,6 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	public bool isDraggedOver = false;
 	public GameObject towerRangeImage;
 
-
 	Vector3 StartPosition;
 	Transform StartParent;
 	GameObject shadowImage;
@@ -33,6 +32,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 			return;
 		}
 		towerBeingDragged = gameObject;
+		GameManager.GM.draggingTower = towerBeingDragged;
 		StartPosition = transform.position;
 		StartParent = transform.parent;
 		shadowImage = (GameObject)Instantiate (shadowImagePrefab, Camera.main.ScreenToWorldPoint (Input.mousePosition), Quaternion.identity);
@@ -109,6 +109,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		} 
 		GameManager.GM.ConsumeCoinHolder.SetActive (false);
 		towerBeingDragged = null;
+		GameManager.GM.draggingTower = null;
 		draggedOver = null;
 	}
 

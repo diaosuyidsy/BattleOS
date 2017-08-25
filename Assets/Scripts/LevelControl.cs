@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LevelControl : MonoBehaviour
 {
@@ -10,8 +11,11 @@ public class LevelControl : MonoBehaviour
 	public GameObject EnemyPrefab;
 	public GameObject SmallEnemyPrefab;
 	public GameObject FlyEnemyPrefab;
+	public GameObject BackgroundImage;
+	public Color[] BackgroundColorsPool;
 	public float spawnIntervals = 5f;
 
+	int BackgroundcolorPointer = 0;
 	public int epoch = 0;
 	float ThreshHold1 = 100f;
 	float ThreshHold2 = 100f;
@@ -85,6 +89,8 @@ public class LevelControl : MonoBehaviour
 			lowerPartLevel++;
 			middlePartLevel++;
 			higherPartLevel++;
+			changeBackgroundColor ();
+
 			perMultiSpawn = 4;
 			waitTime = 130f;
 			minInterval = 2f;
@@ -95,6 +101,8 @@ public class LevelControl : MonoBehaviour
 			lowerPartLevel++;
 			middlePartLevel++;
 			higherPartLevel++;
+			changeBackgroundColor ();
+
 			perMultiSpawn = 4;
 			waitTime = 130f;
 			minInterval = 2f;
@@ -173,6 +181,13 @@ public class LevelControl : MonoBehaviour
 	public int getMiddleLevel ()
 	{
 		return middlePartLevel;
+	}
+
+	void changeBackgroundColor ()
+	{
+		BackgroundcolorPointer++;
+		BackgroundcolorPointer %= BackgroundColorsPool.Length;
+		BackgroundImage.GetComponent<Image> ().color = BackgroundColorsPool [BackgroundcolorPointer];
 	}
 
 }

@@ -221,7 +221,7 @@ public class TowerControl : MonoBehaviour
 				if (chainHeal) {
 					List<GameObject> Ancesters = new List<GameObject> ();
 					Ancesters.Add (HealTarget);
-					ChainHeal (HealTarget, 2, AttackPower, Ancesters);
+					ChainHeal (HealTarget, 2, AttackPower * 0.15f, Ancesters);
 				}
 				if (HealBuffArmor) {
 					StopCoroutine ("HealbuffArmor");
@@ -274,7 +274,7 @@ public class TowerControl : MonoBehaviour
 			Instantiate (HealingEffect, new Vector3 (minHealee.transform.position.x, minHealee.transform.position.y, -6f), Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
 			DrawLine (from.transform.position, minHealee.transform.position, new Color (175f / 255f, 249f / 255f, 161f / 255f, 1f));
 			ancesters.Add (minHealee);
-			ChainHeal (minHealee, jumpTime - 1, 0.3f * healAmount, ancesters);
+			ChainHeal (minHealee, jumpTime - 1, 0.15f * healAmount, ancesters);
 		}
 
 	}
@@ -825,6 +825,9 @@ public class TowerControl : MonoBehaviour
 //			break;
 //		}
 //		baseTime *= TowerLevel;
+		for (int i = 1; i < TowerLevel; i++) {
+			baseTime += 2f;
+		}
 		return baseTime;
 	}
 

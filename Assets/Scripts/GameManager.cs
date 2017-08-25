@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
 	public GameObject SpellStarter;
 	public GameObject FortifySpell;
 	public GameObject selectedTower;
+	public GameObject draggingTower;
 	public int Coins = 0;
 	public Text CoinText;
 	public int[] UnlockNextSlotCoin;
@@ -44,7 +45,6 @@ public class GameManager : MonoBehaviour
 	public GAui TowerAbilityPanel;
 	public Text ScoreText;
 	public GameObject BuffEffect;
-	public GameObject[] TimeButtons;
 	public string[] myNumFix;
 
 	private int score;
@@ -269,30 +269,6 @@ public class GameManager : MonoBehaviour
 			Time.timeScale = 0f;
 		else
 			Time.timeScale = 1f;
-	}
-
-	public void slowTime ()
-	{
-		if (Mathf.Approximately (Time.timeScale, 1f)) {
-			Time.timeScale = 0.1f;
-			TimeButtons [0].SetActive (false);
-		}
-		if (Mathf.Approximately (Time.timeScale, 1.5f)) {
-			Time.timeScale = 1f;
-			TimeButtons [1].SetActive (true);
-		}
-	}
-
-	public void fastTime ()
-	{
-		if (Mathf.Approximately (Time.timeScale, 1f)) {
-			Time.timeScale = 1.5f;
-			TimeButtons [1].SetActive (false);
-		}
-		if (Mathf.Approximately (Time.timeScale, 0.1f)) {
-			Time.timeScale = 1f;
-			TimeButtons [0].SetActive (true);
-		}
 	}
 
 	public string NumToString (int val)
