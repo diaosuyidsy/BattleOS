@@ -27,7 +27,7 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 
 	bool startRe = false;
 	bool startClicking = false;
-	bool SpellReady = false;
+	bool SpellReady = true;
 	float clickCD = 0f;
 	float pTime;
 	Color spriteColor;
@@ -49,8 +49,7 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 		for (int i = 1; i <= middleLevel; i++) {
 			baseCoin *= i;
 		}
-		Debug.Log (baseCoin);
-		return 4 * baseCoin;
+		return 2 * baseCoin;
 	}
 	// Update is called once per frame
 	void Update ()

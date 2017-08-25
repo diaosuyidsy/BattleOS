@@ -189,7 +189,7 @@ public class GameManager : MonoBehaviour
 		if (slotNum == 3) {
 			FortifySpell.SetActive (true);
 			SpellLock.SetActive (false);
-			SpellStarter.SetActive (true);
+//			SpellStarter.SetActive (true);
 		}
 		AddCoin (-UnlockNextSlotCoin [slotNum]);
 		slotNum++;

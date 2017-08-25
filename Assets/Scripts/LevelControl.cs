@@ -85,24 +85,22 @@ public class LevelControl : MonoBehaviour
 		}
 		if (ThreshHold1 <= 0f) {
 			ThreshHold1 = 100f;
-			minDecadeRate -= 0.3f;
 			lowerPartLevel++;
 			middlePartLevel++;
 			higherPartLevel++;
 			changeBackgroundColor ();
-
+			minDecadeRate = 0.8f;
 			perMultiSpawn = 4;
 			waitTime = 130f;
 			minInterval = 2f;
 		}
 		if (ThreshHold2 <= 0f) {
 			ThreshHold2 = 100f;
-			minDecadeRate -= 0.3f;
 			lowerPartLevel++;
 			middlePartLevel++;
 			higherPartLevel++;
 			changeBackgroundColor ();
-
+			minDecadeRate = 0.8f;
 			perMultiSpawn = 4;
 			waitTime = 130f;
 			minInterval = 2f;
@@ -116,6 +114,7 @@ public class LevelControl : MonoBehaviour
 			perMultiSpawn = 5;
 			waitTime = 140f;
 			minInterval -= 0.04f;
+			minDecadeRate -= 0.2f;
 		} else if (smallerHold <= 7f) {
 			perMultiSpawn = 6;
 			waitTime = 145f;

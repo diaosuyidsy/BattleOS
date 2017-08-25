@@ -52,7 +52,7 @@ public class GeneralTouch : MonoBehaviour
 	public void slowTime ()
 	{
 		if (Mathf.Approximately (Time.timeScale, 1f)) {
-			Time.timeScale = 0.1f;
+			Time.timeScale = 0.05f;
 			StartCoroutine (TextEmerge (TimeSlowText));
 		}
 		if (Mathf.Approximately (Time.timeScale, 1.5f)) {
@@ -67,7 +67,7 @@ public class GeneralTouch : MonoBehaviour
 			Time.timeScale = 1.5f;
 			StartCoroutine (TextEmerge (TimeFastText));
 		}
-		if (Mathf.Approximately (Time.timeScale, 0.1f)) {
+		if (Mathf.Approximately (Time.timeScale, 0.05f)) {
 			Time.timeScale = 1f;
 			StartCoroutine (TextEmerge (TimeNormText));
 

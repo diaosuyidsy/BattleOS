@@ -157,11 +157,11 @@ public class EnemyControl : MonoBehaviour
 		walkingSpeed = ws;
 		int.TryParse (Params [Params.Length - 1], out Coins);
 		for (int i = 8; i < EnemyLevel; i++) {
-			maxHealth *= 2f;
-			maxAttackPower *= 2f;
+			maxHealth *= 2.12f;
+			maxAttackPower *= 2.12f;
 			maxArmor *= 1.01f;
 			maxAttackCD /= 1.01f;
-			Coins *= 2;
+			Coins *= (i + 1);
 		}
 	}
 
