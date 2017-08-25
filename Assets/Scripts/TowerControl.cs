@@ -633,8 +633,8 @@ public class TowerControl : MonoBehaviour
 				linkedSoul.GetComponent<TowerControl> ().TakeDamageFromLinkedSoul (dmg / maxHealth, dmg);
 			}
 			//Split Damage as a line for tank tower as default ability
-			if (TT == TowerType.Tank && !isSplitDmg) {
-				int type = isTankLinedTogether ();
+			if (TT == TowerType.Tank) {
+				int type = isTankLinedTogether (caller);
 				if (type != 0) {
 					splitDamage (dmg * 0.4f, type, gameObject);
 					dmg *= 0.6f;
@@ -691,15 +691,15 @@ public class TowerControl : MonoBehaviour
 	// value 1 means left only linked
 	// value 2 means right only linked
 	// value 3 means both linked
-	int isTankLinedTogether ()
+	public int isTankLinedTogether (GameObject caller)
 	{
 		bool leftLinked = false, rightlinked = false;
 		RaycastHit2D[] hits = Physics2D.RaycastAll (transform.position, Vector2.left, 1f);
-		if (hits != null && hits.Any (h => h.collider.gameObject != gameObject && h.collider.tag == "Tower" && h.collider.GetComponent<TowerControl> ().TT == TowerType.Tank)) {
+		if (hits != null && hits.Any (h => h.collider.gameObject != gameObject && h.collider.gameObject != caller && h.collider.tag == "Tower" && h.collider.GetComponent<TowerControl> ().TT == TowerType.Tank)) {
 			leftLinked = true;
 		}
 		RaycastHit2D[] hits2 = Physics2D.RaycastAll (transform.position, Vector2.right, 1f);
-		if (hits != null && hits2.Any (h => h.collider.gameObject != gameObject && h.collider.tag == "Tower" && h.collider.GetComponent<TowerControl> ().TT == TowerType.Tank)) {
+		if (hits != null && hits2.Any (h => h.collider.gameObject != gameObject && h.collider.gameObject != caller && h.collider.tag == "Tower" && h.collider.GetComponent<TowerControl> ().TT == TowerType.Tank)) {
 			rightlinked = true;
 		}
 		if (leftLinked && rightlinked) {
@@ -711,7 +711,6 @@ public class TowerControl : MonoBehaviour
 		} else {
 			return 0;
 		}
-
 	}
 
 	void OnDrawGizmosSelected ()

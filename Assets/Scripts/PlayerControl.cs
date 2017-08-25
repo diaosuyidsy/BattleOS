@@ -19,6 +19,8 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 	bool startClicking = false;
 	float clickCD = 0f;
 	public bool soulLink = false;
+	GameObject leftChain = null;
+	GameObject rightChain = null;
 
 	void Update ()
 	{
@@ -85,6 +87,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 			transform.parent = minSlot;
 			transform.localPosition = Vector3.zero;
 		}
+
 		//Level 5 ablity soul link
 		if (soulLink) {
 			GetComponent<TowerControl> ().linkSoul ();
@@ -111,6 +114,72 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		towerBeingDragged = null;
 		GameManager.GM.draggingTower = null;
 		draggedOver = null;
+	}
+
+	void createTankChain ()
+	{
+		if (GetComponent<TowerControl> ().TT == TowerType.Tank) {
+			if (leftChain != null) {
+				Color a = leftChain.GetComponent<SpriteRenderer> ().color;
+				a.a = 0f;
+				leftChain.GetComponent<SpriteRenderer> ().color = a;
+			}
+			if (rightChain != null) {
+				Color a = leftChain.GetComponent<SpriteRenderer> ().color;
+				a.a = 0f;
+				leftChain.GetComponent<SpriteRenderer> ().color = a;
+			}
+			int linktype = GetComponent<TowerControl> ().isTankLinedTogether (null);
+			switch (linktype) {
+			case 0:
+				Debug.Log (0);
+				break;
+			case 1:
+				Debug.Log (1);
+				RaycastHit2D[] hits = Physics2D.RaycastAll (transform.position, Vector2.left, 1f);
+				foreach (RaycastHit2D hit in hits) {
+					if (hit.collider != null && hit.collider.tag == "Chain") {
+						Color a = hit.collider.GetComponent<SpriteRenderer> ().color;
+						a.a = 1f;
+						hit.collider.GetComponent<SpriteRenderer> ().color = a;
+						leftChain = hit.collider.gameObject;
+						break;
+					}
+				}
+				break;
+			case 2:
+				Debug.Log (2);
+				hits = Physics2D.RaycastAll (transform.position, Vector2.right, 1f);
+				foreach (RaycastHit2D hit in hits) {
+					if (hit.collider != null && hit.collider.tag == "Chain") {
+						Color a = hit.collider.GetComponent<SpriteRenderer> ().color;
+						a.a = 1f;
+						hit.collider.GetComponent<SpriteRenderer> ().color = a;
+						rightChain = hit.collider.gameObject;
+						break;
+					}
+				}
+				break;
+			case 3:
+				Debug.Log (3);
+				hits = Physics2D.LinecastAll (new Vector2 (transform.position.x - 1f, transform.position.y), new Vector2 (transform.position.x + 1f, transform.position.y));
+				int i = 0;
+				foreach (RaycastHit2D hit in hits) {
+					if (hit.collider != null && hit.collider.tag == "Chain") {
+						Color a = hit.collider.GetComponent<SpriteRenderer> ().color;
+						a.a = 1f;
+						hit.collider.GetComponent<SpriteRenderer> ().color = a;
+						if (i == 0) {
+							leftChain = hit.collider.gameObject;
+							i++;
+						} else {
+							rightChain = hit.collider.gameObject;
+						}
+					}
+				}
+				break;
+			}
+		}
 	}
 
 	void OnMouseDown ()

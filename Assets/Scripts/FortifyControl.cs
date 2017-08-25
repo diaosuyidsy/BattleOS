@@ -50,7 +50,7 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 			baseCoin *= i;
 		}
 		Debug.Log (baseCoin);
-		return 10 * baseCoin;
+		return 4 * baseCoin;
 	}
 	// Update is called once per frame
 	void Update ()
