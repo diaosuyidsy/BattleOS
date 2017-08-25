@@ -168,12 +168,12 @@ public class GameManager : MonoBehaviour
 				}
 			}
 			GameObject a = null;
-			if (healT >= RangeT && healT >= TankT) {
+			if (healT <= RangeT && healT <= TankT) {
 				if (slotIndex <= Slots.Length - 1) {
 					a = (GameObject)Instantiate (Level1HealTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
 				}
 
-			} else if (RangeT >= TankT && RangeT >= healT) {
+			} else if (RangeT <= TankT && RangeT <= healT) {
 				if (slotIndex <= Slots.Length - 1) {
 					a = (GameObject)Instantiate (Level1RangeTower, Slots [slotIndex].transform.position, Quaternion.identity, Slots [slotIndex].transform);
 				}

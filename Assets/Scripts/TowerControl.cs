@@ -817,7 +817,7 @@ public class TowerControl : MonoBehaviour
 
 	public float thisTowerToRepTime ()
 	{
-		float baseTime = 12f;
+		float baseTime = 8f;
 //		switch (TT) {
 //		case TowerType.Tank:
 //		case TowerType.Heal:
@@ -897,14 +897,9 @@ public class TowerControl : MonoBehaviour
 		GameObject minEnemy = null;
 
 		Collider2D[] hits = Physics2D.OverlapCircleAll (transform.position, Range_Range);
-		float minRange = 100f;
 		foreach (Collider2D hit in hits) {
-			if (hit != null && hit.gameObject.tag == "Enemy" && hit.gameObject != originalTarget) {
-				float dist = Vector2.Distance (transform.position, hit.transform.position);
-				if (dist < minRange) {
-					minRange = dist;
-					minEnemy = hit.gameObject;
-				}
+			if (hit != null && hit.gameObject.tag == "Enemy") {
+				minEnemy = hit.gameObject;
 				hasEnemy = true;
 			}
 		}
