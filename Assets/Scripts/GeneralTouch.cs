@@ -47,6 +47,12 @@ public class GeneralTouch : MonoBehaviour
 				}
 			}
 		}
+		if (Input.GetButtonDown ("ToRight")) {
+			fastTime ();
+		}
+		if (Input.GetButtonDown ("ToLeft")) {
+			slowTime ();
+		}
 	}
 
 	public void slowTime ()

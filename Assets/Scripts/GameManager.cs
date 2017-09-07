@@ -112,6 +112,8 @@ public class GameManager : MonoBehaviour
 				pl.GetComponentInChildren<Text> ().color = Color.red;
 			}
 		}
+
+		FortifySpell.GetComponent<FortifyControl> ().refresh ();
 	}
 
 	public void onScore (int scorenum)
@@ -189,6 +191,7 @@ public class GameManager : MonoBehaviour
 		if (slotNum == 3) {
 			FortifySpell.SetActive (true);
 			SpellLock.SetActive (false);
+			FortifySpell.GetComponent<FortifyControl> ().refresh ();
 //			SpellStarter.SetActive (true);
 		}
 		AddCoin (-UnlockNextSlotCoin [slotNum]);

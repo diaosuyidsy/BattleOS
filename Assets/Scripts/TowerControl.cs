@@ -717,7 +717,7 @@ public class TowerControl : MonoBehaviour
 	{
 		// Display the explosion radius when selected
 		Gizmos.color = new Color (1, 1, 0, 0.75F);
-		Gizmos.DrawWireSphere (transform.position, 1f);
+		Gizmos.DrawWireSphere (transform.position, 0.3f);
 	}
 
 	void Thorn (float dmg, GameObject enforcer)

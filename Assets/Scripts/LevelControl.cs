@@ -25,7 +25,16 @@ public class LevelControl : MonoBehaviour
 	float mdr = 0.8f;
 	int perMultiSpawn = 4;
 	float waitTime = 130f;
-	float minInterval = 2f;
+	float mi = 2f;
+
+	float minInterval {
+		get {
+			return mi;
+		}
+		set {
+			mi = Mathf.Max (1.4f, value);
+		}
+	}
 
 	float minDecadeRate {
 		get {
@@ -89,6 +98,7 @@ public class LevelControl : MonoBehaviour
 			middlePartLevel++;
 			higherPartLevel++;
 			changeBackgroundColor ();
+			changeFortifySpellCoin ();
 			minDecadeRate = 0.8f;
 			perMultiSpawn = 4;
 			waitTime = 130f;
@@ -100,6 +110,7 @@ public class LevelControl : MonoBehaviour
 			middlePartLevel++;
 			higherPartLevel++;
 			changeBackgroundColor ();
+			changeFortifySpellCoin ();
 			minDecadeRate = 0.8f;
 			perMultiSpawn = 4;
 			waitTime = 130f;
@@ -187,6 +198,11 @@ public class LevelControl : MonoBehaviour
 		BackgroundcolorPointer++;
 		BackgroundcolorPointer %= BackgroundColorsPool.Length;
 		BackgroundImage.GetComponent<Image> ().color = BackgroundColorsPool [BackgroundcolorPointer];
+	}
+
+	void changeFortifySpellCoin ()
+	{
+		GameManager.GM.FortifySpell.GetComponent<FortifyControl> ().refresh ();
 	}
 
 }

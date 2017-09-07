@@ -42,6 +42,15 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 		spriteColor = SpellSprite.GetComponent<SpriteRenderer> ().color;
 	}
 
+	public void refresh ()
+	{
+		coinText.text = GameManager.GM.NumToString (coinNeeded);
+		if (!GameManager.GM.hasEnoughCoin_Plain (coinNeeded))
+			coinText.color = Color.red;
+		else
+			coinText.color = spriteColor;
+	}
+
 	int fortifyCoin ()
 	{
 		int middleLevel = LevelControl.LC.getMiddleLevel ();
@@ -49,7 +58,7 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 		for (int i = 1; i <= middleLevel; i++) {
 			baseCoin *= i;
 		}
-		return 2 * baseCoin;
+		return 4 * baseCoin;
 	}
 	// Update is called once per frame
 	void Update ()
