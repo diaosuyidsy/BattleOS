@@ -71,15 +71,16 @@ public class GameManager : MonoBehaviour
 
 	public bool hasEnoughCoin (int tryToSpend)
 	{
-		if (tryToSpend <= Coins)
-			return true;
-		StartCoroutine (stopShaking ());
-		return false;
+//		if (tryToSpend <= Coins)
+		return true;
+//		StartCoroutine (stopShaking ());
+//		return false;
 	}
 
 	public bool hasEnoughCoin_Plain (int tryToSpend)
 	{
-		return tryToSpend <= Coins;
+//		return tryToSpend <= Coins;
+		return true;
 	}
 
 	IEnumerator stopShaking ()

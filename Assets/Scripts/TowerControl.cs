@@ -816,16 +816,13 @@ public class TowerControl : MonoBehaviour
 
 	public float thisTowerToRepTime ()
 	{
-		float baseTime = 8f;
-//		switch (TT) {
-//		case TowerType.Tank:
-//		case TowerType.Heal:
-//		case TowerType.Range:
-//			break;
-//		}
+		float baseTime = 16f;
 //		baseTime *= TowerLevel;
 		for (int i = 1; i < TowerLevel; i++) {
-			baseTime += 2f;
+			baseTime *= 2f;
+		}
+		for (int i = 1; i < LevelControl.LC.getLowerLevel (); i++) {
+			baseTime /= 2f;
 		}
 		return baseTime;
 	}

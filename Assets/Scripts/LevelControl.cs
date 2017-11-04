@@ -14,6 +14,12 @@ public class LevelControl : MonoBehaviour
 	public GameObject BackgroundImage;
 	public Color[] BackgroundColorsPool;
 	public float spawnIntervals = 5f;
+	public GameObject LockDownPrefab;
+	public GameObject missilePrefab;
+	public Transform[] showerSpawns;
+	public GameObject debrisPrefab;
+	public GameObject aggrPrefab;
+	public GameObject aggrMissilePrefab;
 
 	int BackgroundcolorPointer = 0;
 	public int epoch = 0;
@@ -24,7 +30,7 @@ public class LevelControl : MonoBehaviour
 	int higherPartLevel = 3;
 	float mdr = 0.8f;
 	int perMultiSpawn = 4;
-	float waitTime = 130f;
+	float waitTime = 65f;
 	float mi = 2f;
 
 	float minInterval {
@@ -53,28 +59,92 @@ public class LevelControl : MonoBehaviour
 	void Start ()
 	{
 		StartCoroutine (StartSpawn ());
-		StartCoroutine (constantlyAddCoins ());
+	}
+
+	IEnumerator singleAggregate ()
+	{
+		// Find the lower left corner of the aggregation
+		// (1,2) - (4,5)
+		int randPos = Random.Range (10, 30);
+		while (randPos == 14 || randPos == 15 || randPos == 24 || randPos == 25) {
+			randPos = Random.Range (10, 30);
+		}
+		GameObject aggr = (GameObject)Instantiate (aggrPrefab, GameManager.GM.Slots [randPos].transform.position, Quaternion.identity);
+		yield return new WaitForSeconds (8f);
+		//Generate Rocket
+		int randSpawnPos = Random.Range (0, 5);
+		GameObject AgreMissile = (GameObject)Instantiate (aggrMissilePrefab, showerSpawns [randSpawnPos].position, Quaternion.identity);
+		AgreMissile.GetComponent<AggregateMissileControl> ().SetTarget (aggr.transform.GetChild (0).transform.position, 2f);
+		yield return new WaitForSeconds (1f);
+		Destroy (aggr);
+	}
+
+	IEnumerator singleShower ()
+	{
+		// First find a occupied spot
+		int randPos = Random.Range (10, 35);
+//		while (GameManager.GM.Slots [randPos].transform.childCount < 1) {
+//			randPos = Random.Range (10, 35);
+//		}
+		while (!GameManager.GM.Slots [randPos].activeSelf) {
+			randPos = Random.Range (10, 35);
+		}
+		// Create Lockdown
+		GameObject lockDown = (GameObject)Instantiate (LockDownPrefab, GameManager.GM.Slots [randPos].transform.position, Quaternion.identity);
+		yield return new WaitForSeconds (5f);
+		//Generate Rocket
+		int randSpawnPos = Random.Range (0, 5);
+		GameObject missile = (GameObject)Instantiate (missilePrefab, showerSpawns [randSpawnPos].position, Quaternion.identity);
+		missile.GetComponent<MissileControl> ().SetTarget (GameManager.GM.Slots [randPos], 100f);
+		Destroy (lockDown);
+	}
+
+	IEnumerator multipleShower (int amount)
+	{
+		for (int i = 0; i < amount; i++) {
+			StartCoroutine (singleShower ());
+			yield return new WaitForSeconds (4f);
+		}
+	}
+
+	IEnumerator startExtra ()
+	{
+		while (true) {
+			int rand = Random.Range (0, 2);
+//			int rand = 1;
+			if (rand == 0) {
+				StartCoroutine (multipleShower (10));
+				yield return new WaitForSeconds (60f);
+			} else {
+				StartCoroutine (singleAggregate ());
+				yield return new WaitForSeconds (15f);
+			}
+		}
 	}
 
 	IEnumerator StartSpawn ()
 	{
 		StartCoroutine (singleSpawn (1f));
-		yield return new WaitForSeconds (12f);
-		Debug.Log ("Phase 2");
-		multipleSpawns (3, 6f, 0f, 6f);
-		yield return new WaitForSeconds (30f);
-		Debug.Log ("Phase 3");
+		StartCoroutine (startExtra ());
+
+		yield return new WaitForSeconds (10f);
+//		Debug.Log ("Phase 2");
+//		multipleSpawns (3, 6f, 0f, 6f);
+//		yield return new WaitForSeconds (30f);
+//		Debug.Log ("Phase 3");
 		multipleSpawns (5, 5f, 0f, 5f);
-		yield return new WaitForSeconds (35f);
+		yield return new WaitForSeconds (15f);
 		Debug.Log ("Phase 4");
-		multipleSpawns (20, 5f, 0.3f, 2f);
-		yield return new WaitForSeconds (80f);
+		multipleSpawns (20, 3.5f, 0.3f, 2f);
+		yield return new WaitForSeconds (40f);
 		Debug.Log ("Phase 5");
 		StartCoroutine (groupSpawns (10, 2, 2f, 3f));
-		yield return new WaitForSeconds (80f);
+		yield return new WaitForSeconds (40f);
 		Debug.Log ("Phase 6");
+		// Let the shower begin
+		Debug.Log ("Shower Started");
 		StartCoroutine (groupSpawns (10, 4, 2f, 2f));
-		yield return new WaitForSeconds (130f);
+		yield return new WaitForSeconds (65f);
 		Debug.Log ("Phase 7");
 		while (true) {
 			StartCoroutine (groupSpawns (10, perMultiSpawn, minInterval, 2f));
@@ -86,10 +156,15 @@ public class LevelControl : MonoBehaviour
 	int epochToEnemyLevelNew ()
 	{
 		float randomNum = Random.Range (0f, 100f);
-		if (epoch > 20) {
+//		if (epoch > 20) {
+//			ThreshHold1 -= minDecadeRate;
+//		}
+//		if (epoch > 90) {
+//			ThreshHold2 -= minDecadeRate;
+//		}
+		if (epoch > 10)
 			ThreshHold1 -= minDecadeRate;
-		}
-		if (epoch > 90) {
+		if (epoch > 60) {
 			ThreshHold2 -= minDecadeRate;
 		}
 		if (ThreshHold1 <= 0f) {
@@ -99,9 +174,9 @@ public class LevelControl : MonoBehaviour
 			higherPartLevel++;
 			changeBackgroundColor ();
 			changeFortifySpellCoin ();
-			minDecadeRate = 0.8f;
+			minDecadeRate = 1f;
 			perMultiSpawn = 4;
-			waitTime = 130f;
+			waitTime = 90f;
 			minInterval = 2f;
 		}
 		if (ThreshHold2 <= 0f) {
@@ -111,24 +186,24 @@ public class LevelControl : MonoBehaviour
 			higherPartLevel++;
 			changeBackgroundColor ();
 			changeFortifySpellCoin ();
-			minDecadeRate = 0.8f;
+			minDecadeRate = 1f;
 			perMultiSpawn = 4;
-			waitTime = 130f;
+			waitTime = 90f;
 			minInterval = 2f;
 		}
 		if (higherPartLevel == 5) {
-			minDecadeRate = 0.8f;
+			minDecadeRate = 1f;
 		}
 		float smallerHold = Mathf.Min (ThreshHold1, ThreshHold2);
 		float biggerHold = Mathf.Max (ThreshHold1, ThreshHold2);
 		if (smallerHold <= 15f) {
 			perMultiSpawn = 5;
-			waitTime = 140f;
-			minInterval -= 0.04f;
-			minDecadeRate -= 0.2f;
+			waitTime = 90f;
+//			minInterval -= 0.04f;
+//			minDecadeRate -= 0.2f;
 		} else if (smallerHold <= 7f) {
 			perMultiSpawn = 6;
-			waitTime = 145f;
+			waitTime = 90f;
 		}
 		ConsoleProDebug.Watch ("Lower Thresh Hold", smallerHold.ToString ());
 		ConsoleProDebug.Watch ("Higher Thresh Hold", biggerHold.ToString ());
@@ -193,6 +268,11 @@ public class LevelControl : MonoBehaviour
 		return middlePartLevel;
 	}
 
+	public int getLowerLevel ()
+	{
+		return lowerPartLevel;
+	}
+
 	void changeBackgroundColor ()
 	{
 		BackgroundcolorPointer++;
@@ -203,6 +283,31 @@ public class LevelControl : MonoBehaviour
 	void changeFortifySpellCoin ()
 	{
 		GameManager.GM.FortifySpell.GetComponent<FortifyControl> ().refresh ();
+	}
+
+	//utility function
+	public void startDebris (Transform pos, float time)
+	{
+		GameObject debris = (GameObject)Instantiate (debrisPrefab, pos.position, Quaternion.identity);
+		StartCoroutine (end (debris, time));
+	}
+
+	IEnumerator end (GameObject go, float time)
+	{
+		yield return new WaitForSeconds (time);
+		Destroy (go);
+	}
+
+	public void startDisable (GameObject go, float time)
+	{
+		go.SetActive (false);
+		StartCoroutine (istartD (go, time));
+	}
+
+	IEnumerator istartD (GameObject go, float time)
+	{
+		yield return new WaitForSeconds (time);
+		go.SetActive (true);
 	}
 
 }

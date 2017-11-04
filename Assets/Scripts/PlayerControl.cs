@@ -192,10 +192,10 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		startClicking = false;
 		if (clickCD <= 0.1f) {
 			// It's a click
-			if (gameObject.transform.parent.tag == "ProductionSlot") {
-				gameObject.transform.parent.gameObject.GetComponent<ReproduceControl> ().tryStart ();
-				return;
-			}
+//			if (gameObject.transform.parent.tag == "ProductionSlot") {
+//				gameObject.transform.parent.gameObject.GetComponent<ReproduceControl> ().tryStart ();
+//				return;
+//			}
 			if (GameManager.GM.selectedTower == null) {
 				GameManager.GM.selectedTower = gameObject;
 				towerRangeImage.SetActive (true);
@@ -247,7 +247,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		float minDis = Vector2.Distance (StartPosition, Camera.main.ScreenToWorldPoint (Input.mousePosition));
 		Transform minSlot = StartParent;
 		foreach (GameObject slot in GameManager.GM.Slots) {
-			if (slot == null)
+			if (slot == null || !slot.activeSelf)
 				continue;
 			float tempDis = Vector2.Distance (Camera.main.ScreenToWorldPoint (Input.mousePosition), slot.transform.position);
 			if (tempDis <= minDis) {

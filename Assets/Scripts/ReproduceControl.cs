@@ -18,6 +18,7 @@ public class ReproduceControl : MonoBehaviour
 	private bool startRe;
 	private SpriteRenderer TargetSR;
 	private int siblingIndex;
+	private bool firstTimeStart = true;
 
 	void Start ()
 	{
@@ -29,6 +30,12 @@ public class ReproduceControl : MonoBehaviour
 	{
 		if (startRe)
 			rep ();
+		if (!firstTimeStart) {
+			tryStart ();
+			maxProduceTime = ReproductionTarget.GetComponent<TowerControl> ().thisTowerToRepTime ();
+		}
+			
+
 	}
 
 	void rep ()
@@ -55,7 +62,7 @@ public class ReproduceControl : MonoBehaviour
 					b.a = 1f;
 					sprite.color = b;
 				}
-				GameManager.GM.ProductionStarters [siblingIndex].SetActive (true);
+//				GameManager.GM.ProductionStarters [siblingIndex].SetActive (true);
 				GameManager.GM.AddCoin (0);
 				startRe = false;
 				ReproductionTarget.GetComponent<PlayerControl> ().Engaged = false;
@@ -96,27 +103,30 @@ public class ReproduceControl : MonoBehaviour
 		maxProduceTime = TC.thisTowerToRepTime ();
 		// Set up need coin for production
 		productionCoin = TC.thisTowerToRepCoin ();
-		// Active the starter
-		GameManager.GM.ProductionStarters [siblingIndex].transform.GetChild (1).GetComponent<Text> ().text = GameManager.GM.NumToString (productionCoin);
-
-		GameManager.GM.ProductionStarters [siblingIndex].SetActive (true);
+//		// Active the starter
+//		GameManager.GM.ProductionStarters [siblingIndex].transform.GetChild (1).GetComponent<Text> ().text = GameManager.GM.NumToString (productionCoin);
+//
+//		GameManager.GM.ProductionStarters [siblingIndex].SetActive (true);
+		tryStart ();
 		GameManager.GM.AddCoin (0);
 	}
 
 	public void tryStart ()
 	{
-		// If coin not sufficient, no
-		if (!GameManager.GM.hasEnoughCoin (productionCoin))
-			return;
+//		// If coin not sufficient, no
+//		if (!GameManager.GM.hasEnoughCoin (productionCoin))
+//			return;
 		// If prior slot has a tower, no
 		if (SlotInFront.transform.childCount != 0)
 			return;
 		if (startRe)
 			return;
 		//Else start!
-		GameManager.GM.ProductionStarters [siblingIndex].SetActive (false);
-		GameManager.GM.AddCoin (-productionCoin);
+//		GameManager.GM.ProductionStarters [siblingIndex].SetActive (false);
+//		GameManager.GM.AddCoin (-productionCoin);
 		startRe = true;
+		if (firstTimeStart)
+			firstTimeStart = false;
 		ReproductionTarget.GetComponent<PlayerControl> ().Engaged = true;
 
 	}
