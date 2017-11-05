@@ -57,6 +57,13 @@ public class AggregateMissileControl : MonoBehaviour
 				towers.Add (co.gameObject);
 			}
 		}
+		// Deal Dmg to Enemies in the area relentlessly
+		Collider2D[] enemycolliders = Physics2D.OverlapCircleAll (targetPos, 1.5f);
+		foreach (Collider2D co in enemycolliders) {
+			if (co.tag == "Enemy") {
+				co.gameObject.SendMessage ("TakeDamage", co.gameObject.GetComponent<EnemyControl> ().maxHealth * 2);
+			}
+		}
 		// If TC == 0, deal dmg to all towers
 		if (towers.Count == 0) {
 			GameObject[] tws = GameObject.FindGameObjectsWithTag ("Tower");

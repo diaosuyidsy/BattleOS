@@ -1,16 +1,33 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SmallEnemyControl : MonoBehaviour
 {
-
 	public float maxHealth;
 	public float maxAttackPower;
 	[Range (0f, 1f)]
 	public float maxArmor;
-	public float maxAttackCD = 0.5f;
-	public float walkingSpeed = 1f;
+
+	public float maxAttackCD {
+		get {
+			return ACD / AttackCDBuffer;
+		}
+		set {
+			ACD = value;
+		}
+	}
+
+	public float walkingSpeed {
+		get {
+			return WS * WalkingSpBuffer;
+		}
+		set {
+			WS = value;
+		}
+	}
+
 	public GameObject SpriteAndAnimation;
 	public GameObject HitEffect;
 	public int Coins = 1;
@@ -18,56 +35,137 @@ public class SmallEnemyControl : MonoBehaviour
 	public GameObject HealthBar;
 	public int EnemyLevel = 1;
 	public GameObject TargetedImage;
+	public Text EnemyLevelText;
+	public GameObject EnemyTarget;
 
+	private float ACDB = 1f;
+	private float ACD;
+	private float AP;
+	private float AM;
+	private float WS;
+	private float WSB = 1f;
+	private bool hasTarget;
+
+	private float WalkingSpBuffer {
+		get {
+			return WSB;
+		}
+		set {
+			WSB = value;
+			if (EnemyAnimator != null) {
+				EnemyAnimator.SetFloat ("WalkingSpeed", walkingSpeed);
+			}
+		}
+	}
+
+	private float AttackCDBuffer {
+		get {
+			return ACDB;
+		}
+		set {
+			ACDB = value;
+			if (EnemyAnimator != null) {
+				EnemyAnimator.SetFloat ("AttackSpeed", 1f / maxAttackCD);
+			}
+		}
+	}
+
+	float AttackPowerBuffer = 1f;
+	float ArmorBuffer = 1f;
 	private float AttackCD;
 	public float Health;
-	private float AttackPower;
-	private float Armor;
+
+	public float AttackPower {
+		get {
+			return AP * AttackPowerBuffer;
+		}
+		set {
+			AP = value;
+		}
+	}
+
+	public float Armor {
+		get {
+			float result = AM * ArmorBuffer;
+			return Mathf.Min (1f, result);
+
+		}
+		set {
+			AM = value;
+		}
+	}
+
 	private Color thisColor;
 	private Animator EnemyAnimator;
 	private bool beingTargeted = false;
-	private bool hasTarget = false;
-	public GameObject EnemyTarget;
+
+	//Level 5 Abilities
+	float bleedTime;
+	float bleedDmgPerTime;
+	//not important
+	float bleedTimePool;
+	float freezeDuration;
+	float freezeRate;
 
 	void Start ()
 	{
+		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;
+		EnemyAnimator = SpriteAndAnimation.GetComponent<Animator> ();
+	}
+
+	public void setLevel (int level)
+	{
+		EnemyLevel = level;
 		setParam ();
 		AttackCD = maxAttackCD;
 		Health = maxHealth;
 		Armor = maxArmor;
 		AttackPower = maxAttackPower;
-		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;
 		EnemyAnimator = SpriteAndAnimation.GetComponent<Animator> ();
 		EnemyAnimator.SetFloat ("WalkingSpeed", walkingSpeed);
+		EnemyAnimator.SetFloat ("AttackSpeed", 1f / maxAttackCD);
 	}
 
 	void setParam ()
 	{
-		switch (EnemyLevel) {
-		case 1:
-			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.SmallEnemySprite [0];
-			break;
-		case 2:
-			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.SmallEnemySprite [0];
-			SpriteAndAnimation.GetComponent<SpriteRenderer> ().color = new Color (253f / 255f, 132f / 255f, 132f / 255f);
-			break;
-		case 3:
-			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.SmallEnemySprite [2];
-			break;
-		case 4:
-			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.SmallEnemySprite [2];
-			SpriteAndAnimation.GetComponent<SpriteRenderer> ().color = new Color (253f / 255f, 132f / 255f, 132f / 255f);
-			break;
+		EnemyLevelText.text = EnemyLevel.ToString ();
+//		if (EnemyLevel % 4 == 1) {
+//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [0];
+//
+//		} else if (EnemyLevel % 4 == 2) {
+//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [0];
+//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().color = new Color (253f / 255f, 132f / 255f, 132f / 255f);
+//		} else if (EnemyLevel % 4 == 3) {
+//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [1];
+//		} else {
+//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [1];
+//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().color = new Color (253f / 255f, 132f / 255f, 132f / 255f);
+//		}
+		for (int i = 0; i < EnemyLevel / 4; i++) {
+			SpriteAndAnimation.transform.localScale += new Vector3 (0.5f, 0.5f, 0f);
 		}
-		int baseIndex = 9;
-		baseIndex += (EnemyLevel - 1);
+		int baseIndex = 33;
+		baseIndex += Mathf.Min ((EnemyLevel - 1), 7);
 		string[] Params = GameManager.GM.TowerAndEnemyNum.text.Split ("\n" [0]) [baseIndex].Split (' ');
 		float.TryParse (Params [0], out maxHealth);
 		float.TryParse (Params [1], out maxAttackPower);
 		float.TryParse (Params [2], out maxArmor);
-		float.TryParse (Params [3], out maxAttackCD);
-		float.TryParse (Params [4], out walkingSpeed);
+		float mCD = 0f;
+		float.TryParse (Params [3], out mCD);
+		maxAttackCD = mCD;
+		float ws = 0f;
+		float.TryParse (Params [4], out ws);
+		walkingSpeed = ws;
+		int.TryParse (Params [Params.Length - 1], out Coins);
+		for (int i = 8; i < EnemyLevel; i++) {
+			maxHealth *= 2.11f;
+			maxAttackPower *= 2f;
+			maxArmor *= 1.01f;
+			maxAttackCD /= 1.01f;
+			Coins *= (i + 1);
+		}
 	}
+
 
 	void Update ()
 	{
@@ -77,12 +175,6 @@ public class SmallEnemyControl : MonoBehaviour
 			SearchForTarget ();
 		}
 			
-	}
-
-	public void AddWalkingSpeed (float addedspeed)
-	{
-		walkingSpeed += addedspeed;
-		EnemyAnimator.SetFloat ("WalkingSpeed", walkingSpeed);
 	}
 
 	void SearchForTarget ()
@@ -130,7 +222,7 @@ public class SmallEnemyControl : MonoBehaviour
 		if (Mathf.Abs (AttackCD - 0.5f * maxAttackCD) <= 0.01f)
 			EnemyAnimator.SetBool ("StartAttacking", true);
 		if (AttackCD <= 0f) {
-			EnemyTarget.gameObject.SendMessage ("TakeDamage", AttackPower);
+			EnemyTarget.gameObject.GetComponent<TowerControl> ().TakeDamage (AttackPower, gameObject);
 			AttackCD = maxAttackCD;
 		}
 	}
@@ -141,7 +233,7 @@ public class SmallEnemyControl : MonoBehaviour
 		HealthBarControl (Health);
 		StopCoroutine ("flashRed");
 		StartCoroutine ("flashRed");
-//		Instantiate (HitEffect, transform.position, Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
+		Instantiate (HitEffect, transform.position, Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
 		if (Health <= 0f) {
 			GameObject popupCoin = (GameObject)Instantiate (PopupCoinprefab, Camera.main.WorldToScreenPoint (transform.position), Quaternion.identity, GameObject.Find ("MainCanvas").transform);
 			popupCoin.GetComponent<PopupCoin> ().setText (Coins);

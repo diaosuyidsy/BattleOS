@@ -125,7 +125,6 @@ public class LevelControl : MonoBehaviour
 	IEnumerator StartSpawn ()
 	{
 		StartCoroutine (singleSpawn (1f));
-		StartCoroutine (startExtra ());
 
 		yield return new WaitForSeconds (10f);
 //		Debug.Log ("Phase 2");
@@ -142,10 +141,13 @@ public class LevelControl : MonoBehaviour
 		yield return new WaitForSeconds (40f);
 		Debug.Log ("Phase 6");
 		// Let the shower begin
+		StartCoroutine (startExtra ());
 		Debug.Log ("Shower Started");
 		StartCoroutine (groupSpawns (10, 4, 2f, 2f));
 		yield return new WaitForSeconds (65f);
 		Debug.Log ("Phase 7");
+		// Let the other things come in!
+
 		while (true) {
 			StartCoroutine (groupSpawns (10, perMultiSpawn, minInterval, 2f));
 			yield return new WaitForSeconds (waitTime);
@@ -173,7 +175,6 @@ public class LevelControl : MonoBehaviour
 			middlePartLevel++;
 			higherPartLevel++;
 			changeBackgroundColor ();
-			changeFortifySpellCoin ();
 			minDecadeRate = 1f;
 			perMultiSpawn = 4;
 			waitTime = 90f;
@@ -185,7 +186,6 @@ public class LevelControl : MonoBehaviour
 			middlePartLevel++;
 			higherPartLevel++;
 			changeBackgroundColor ();
-			changeFortifySpellCoin ();
 			minDecadeRate = 1f;
 			perMultiSpawn = 4;
 			waitTime = 90f;
@@ -228,12 +228,36 @@ public class LevelControl : MonoBehaviour
 			LevelControl.LC.EnemySpawns [4].SetActive (true);
 		ConsoleProDebug.Watch ("Epoch#", epoch.ToString ());
 		int level = epochToEnemyLevelNew ();
-		int randomIndex = Random.Range (0, EnemySpawns.Length);
-		while (!EnemySpawns [randomIndex].activeSelf) {
-			randomIndex = Random.Range (0, EnemySpawns.Length);
+		// If epoch bigger than 85, 10% chances strange things might come in
+		Random.InitState (System.Environment.TickCount);
+		float rand = Random.Range (0, 1);
+		if (rand < 0.1f && epoch > 86) {
+			// Then we spawn strange things
+			int ran = Random.Range (0, 2);
+			if (ran == 0) {
+				// Spawn Small Zombie
+				int randomIndex = Random.Range (0, SmallEnemySpawns.Length);
+				Debug.Log ("Called Small Zombie");
+				GameObject newSmallEnemy = Instantiate (SmallEnemyPrefab, SmallEnemySpawns [randomIndex].transform.position, Quaternion.Euler (new Vector3 (0f, 0f, -90f)));
+				newSmallEnemy.GetComponent<SmallEnemyControl> ().setLevel (level);
+			} else {
+				// Spawn Plane
+				int randomIndex = Random.Range (0, SmallEnemySpawns.Length);
+				GameObject newFlyEnemy = Instantiate (FlyEnemyPrefab, SmallEnemySpawns [randomIndex].transform.position, Quaternion.Euler (new Vector3 (0f, 0f, -90f)));
+				newFlyEnemy.GetComponent<FlyEnemyControl> ().setLevel (middlePartLevel);
+			}
+		} else {
+			// Else we just spawn a normal zombie
+			int randomIndex = Random.Range (0, EnemySpawns.Length);
+			while (!EnemySpawns [randomIndex].activeSelf) {
+				randomIndex = Random.Range (0, EnemySpawns.Length);
+			}
+			GameObject newEnemy = Instantiate (EnemyPrefab, EnemySpawns [randomIndex].transform.position, Quaternion.Euler (new Vector3 (0f, 0f, -90f)));
+			newEnemy.GetComponent<EnemyControl> ().setLevel (level);
 		}
-		GameObject newEnemy = Instantiate (EnemyPrefab, EnemySpawns [randomIndex].transform.position, Quaternion.Euler (new Vector3 (0f, 0f, -90f)));
-		newEnemy.GetComponent<EnemyControl> ().setLevel (level);
+			
+
+
 	}
 
 	void multipleSpawns (int num, float interval, float decrease, float limit)
@@ -278,11 +302,6 @@ public class LevelControl : MonoBehaviour
 		BackgroundcolorPointer++;
 		BackgroundcolorPointer %= BackgroundColorsPool.Length;
 		BackgroundImage.GetComponent<Image> ().color = BackgroundColorsPool [BackgroundcolorPointer];
-	}
-
-	void changeFortifySpellCoin ()
-	{
-		GameManager.GM.FortifySpell.GetComponent<FortifyControl> ().refresh ();
 	}
 
 	//utility function

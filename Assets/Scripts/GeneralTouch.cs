@@ -27,7 +27,7 @@ public class GeneralTouch : MonoBehaviour
 			lp = Input.mousePosition;
 		} else if (Input.GetMouseButton (0)) { // update the last position based on where they moved
 			lp = Input.mousePosition;
-			if (GameManager.GM.draggingTower != null) {
+			if (GameManager.GM.draggingTower != null || FortifyControl.FC.draggingSpell) {
 				fp = Input.mousePosition;
 			}
 		} else if (Input.GetMouseButtonUp (0)) { //check if the finger is removed from the screen
@@ -58,7 +58,7 @@ public class GeneralTouch : MonoBehaviour
 	public void slowTime ()
 	{
 		if (Mathf.Approximately (Time.timeScale, 1f)) {
-			Time.timeScale = 0.05f;
+			Time.timeScale = 0.1f;
 			StartCoroutine (TextEmerge (TimeSlowText));
 		}
 		if (Mathf.Approximately (Time.timeScale, 1.5f)) {
@@ -73,7 +73,7 @@ public class GeneralTouch : MonoBehaviour
 			Time.timeScale = 1.5f;
 			StartCoroutine (TextEmerge (TimeFastText));
 		}
-		if (Mathf.Approximately (Time.timeScale, 0.05f)) {
+		if (Mathf.Approximately (Time.timeScale, 0.1f)) {
 			Time.timeScale = 1f;
 			StartCoroutine (TextEmerge (TimeNormText));
 

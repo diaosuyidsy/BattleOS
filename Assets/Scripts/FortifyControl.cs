@@ -6,66 +6,46 @@ using UnityEngine.UI;
 
 public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
+	public static FortifyControl FC;
 	public GameObject Progression;
 	public GameObject SpellSprite;
 	public GameObject BlurBorder;
 	public GameObject ProgressBarHolder;
 	public GameObject ActiveRange;
-
-	public int coinNeeded {
-		get {
-			return fortifyCoin ();
-		}
-	}
-
-	public Text coinText;
 	public float maxProduceTime;
 	public GAui SpellPanel;
 	public Text SpellName;
 	public Text SpellIntro;
 	public Text SpellFunction;
+	// Used to identiy action of dragging spell
+	// Not to Slow down time if doing so
+	public bool draggingSpell = false;
 
 	bool startRe = false;
 	bool startClicking = false;
-	bool SpellReady = true;
+	bool SpellReady = false;
 	float clickCD = 0f;
 	float pTime;
 	Color spriteColor;
 	bool isIntroVisible = false;
 
+	void Awake ()
+	{
+		FC = this;
+	}
+
 	// Use this for initialization
 	void Start ()
 	{
-		coinText.text = GameManager.GM.NumToString (coinNeeded);
-		if (!GameManager.GM.hasEnoughCoin_Plain (coinNeeded))
-			coinText.color = Color.red;
 		spriteColor = SpellSprite.GetComponent<SpriteRenderer> ().color;
 	}
-
-	public void refresh ()
-	{
-		coinText.text = GameManager.GM.NumToString (coinNeeded);
-		if (!GameManager.GM.hasEnoughCoin_Plain (coinNeeded))
-			coinText.color = Color.red;
-		else
-			coinText.color = spriteColor;
-	}
-
-	int fortifyCoin ()
-	{
-		int middleLevel = LevelControl.LC.getMiddleLevel ();
-		int baseCoin = 3;
-		for (int i = 1; i <= middleLevel; i++) {
-			baseCoin *= i;
-		}
-		return 4 * baseCoin;
-	}
+		
 	// Update is called once per frame
 	void Update ()
 	{
 		if (startClicking)
 			clickCD += Time.deltaTime;
-		if (startRe) {
+		if (!SpellReady) {
 			rep ();
 		}
 	}
@@ -95,7 +75,6 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 		ActiveRange.transform.localPosition = Vector3.zero;
 		ActiveRange.SetActive (false);
 		SpellReady = false;
-		GameManager.GM.SpellStarter.SetActive (true);
 		isIntroVisible = true;
 		IntroEnter ();
 	}
@@ -113,13 +92,9 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 
 	void tryStart ()
 	{
-		if (!GameManager.GM.hasEnoughCoin (coinNeeded))
-			return;
 		if (startRe)
 			return;
 		ProgressBarHolder.SetActive (true);
-		GameManager.GM.SpellStarter.SetActive (false);
-		GameManager.GM.AddCoin (-coinNeeded);
 
 		startRe = true;
 	}
@@ -134,11 +109,7 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 		startClicking = false;
 		if (clickCD <= 0.1f) {
 			// It's a click
-			if (!SpellReady && !startRe)
-				tryStart ();
-			else {
-				IntroEnter ();
-			}
+			IntroEnter ();
 		}
 		clickCD = 0f;
 	}
@@ -160,6 +131,7 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 	{
 		if (!SpellReady)
 			return;
+		draggingSpell = true;
 		ActiveRange.SetActive (true);
 		ActiveRange.transform.localPosition = Vector3.zero;
 	}
@@ -175,6 +147,7 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 	{
 		if (!SpellReady)
 			return;
+		draggingSpell = false;
 		Vector3 mouseP = Camera.main.ScreenToWorldPoint (Input.mousePosition);
 		if (Vector2.Distance (mouseP, transform.position) <= 1f || Mathf.Abs (mouseP.y - transform.position.y) <= 1f) {
 			//Cancel Spell

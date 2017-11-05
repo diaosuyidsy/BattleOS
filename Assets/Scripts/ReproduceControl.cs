@@ -17,12 +17,10 @@ public class ReproduceControl : MonoBehaviour
 	private GameObject ReproductionTarget;
 	private bool startRe;
 	private SpriteRenderer TargetSR;
-	private int siblingIndex;
 	private bool firstTimeStart = true;
 
 	void Start ()
 	{
-		siblingIndex = transform.GetSiblingIndex ();
 	}
 
 	// Update is called once per frame

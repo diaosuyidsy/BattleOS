@@ -30,6 +30,7 @@ public class EnemyControl : MonoBehaviour
 
 	public GameObject SpriteAndAnimation;
 	public GameObject HitEffect;
+	public GameObject DeathSplatter;
 	public int Coins = 1;
 	public GameObject PopupCoinprefab;
 	public GameObject HealthBar;
@@ -171,8 +172,6 @@ public class EnemyControl : MonoBehaviour
 		if (walking)
 			transform.Translate (Vector3.right * Time.deltaTime * walkingSpeed);
 		Hit ();
-		if (bleedTime > 0f)
-			bleeding ();
 	}
 
 	public void startBleed (float bleedt, float bleedD)
@@ -246,9 +245,7 @@ public class EnemyControl : MonoBehaviour
 		StartCoroutine ("flashRed");
 		Instantiate (HitEffect, transform.position, Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
 		if (Health <= 0f) {
-//			GameObject popupCoin = (GameObject)Instantiate (PopupCoinprefab, Camera.main.WorldToScreenPoint (transform.position), Quaternion.identity, GameObject.Find ("MainCanvas").transform);
-//			popupCoin.GetComponent<PopupCoin> ().setText (Coins);
-//			GameManager.GM.AddCoin (Coins);
+			Instantiate (DeathSplatter, transform.position, Quaternion.identity);
 			GameManager.GM.onScore (EnemyLevel);
 			Destroy (gameObject);
 		}

@@ -1,15 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class FlyEnemyControl : MonoBehaviour
 {
 	public float maxHealth;
-	public float maxAttackPower;
 	[Range (0f, 1f)]
 	public float maxArmor;
-	public float maxAttackCD = 0.5f;
-	public float walkingSpeed = 1f;
+
+	public float walkingSpeed {
+		get {
+			return WS * WalkingSpBuffer;
+		}
+		set {
+			WS = value;
+		}
+	}
+
 	public GameObject SpriteAndAnimation;
 	public GameObject HitEffect;
 	public int Coins = 1;
@@ -18,55 +26,88 @@ public class FlyEnemyControl : MonoBehaviour
 	public int EnemyLevel = 1;
 	public GameObject TargetedImage;
 
+	private float AM;
+	private float WS;
+	private float WSB = 1f;
+
+	private float WalkingSpBuffer {
+		get {
+			return WSB;
+		}
+		set {
+			WSB = value;
+			if (EnemyAnimator != null) {
+				EnemyAnimator.SetFloat ("WalkingSpeed", walkingSpeed);
+			}
+		}
+	}
+
+	float ArmorBuffer = 1f;
+	private float AttackCD;
 	public float Health;
-	private float Armor;
+
+	public float Armor {
+		get {
+			float result = AM * ArmorBuffer;
+			return Mathf.Min (1f, result);
+
+		}
+		set {
+			AM = value;
+		}
+	}
+
 	private Color thisColor;
+	private Animator EnemyAnimator;
 	private bool beingTargeted = false;
+
+	//Level 5 Abilities
+	float bleedTime;
+	float bleedDmgPerTime;
+	//not important
+	float bleedTimePool;
+	float freezeDuration;
+	float freezeRate;
 
 	void Start ()
 	{
+		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;
+	}
+
+	public void setLevel (int level)
+	{
+		EnemyLevel = level;
 		setParam ();
 		Health = maxHealth;
 		Armor = maxArmor;
-		thisColor = SpriteAndAnimation.GetComponent<SpriteRenderer> ().color;
+
 	}
 
 	void setParam ()
 	{
-//		switch (EnemyLevel) {
-//		case 1:
-//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [0];
-//			break;
-//		case 2:
-//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [0];
-//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().color = new Color (253f / 255f, 132f / 255f, 132f / 255f);
-//			break;
-//		case 3:
-//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [1];
-//			break;
-//		case 4:
-//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().sprite = GameManager.GM.EnemySprite [1];
-//			SpriteAndAnimation.GetComponent<SpriteRenderer> ().color = new Color (253f / 255f, 132f / 255f, 132f / 255f);
-//			break;
-//		}
-		int baseIndex = 9;
-		baseIndex += (EnemyLevel - 1);
+		int baseIndex = 33;
+		baseIndex += Mathf.Min ((EnemyLevel - 1), 7);
 		string[] Params = GameManager.GM.TowerAndEnemyNum.text.Split ("\n" [0]) [baseIndex].Split (' ');
 		float.TryParse (Params [0], out maxHealth);
-		float.TryParse (Params [1], out maxAttackPower);
+		//Plane Enemy should be 1.5 more health
+		maxHealth *= 1.5f;
 		float.TryParse (Params [2], out maxArmor);
-		float.TryParse (Params [3], out maxAttackCD);
-//		float.TryParse (Params [4], out walkingSpeed);
+		float mCD = 0f;
+		float.TryParse (Params [3], out mCD);
+		float ws = 0f;
+		float.TryParse (Params [4], out ws);
+		walkingSpeed = ws;
+		int.TryParse (Params [Params.Length - 1], out Coins);
+		for (int i = 8; i < EnemyLevel; i++) {
+			maxHealth *= 2.11f;
+			maxArmor *= 1.01f;
+			Coins *= (i + 1);
+		}
 	}
 
 	void Update ()
 	{
 		transform.Translate (Vector3.right * Time.deltaTime * walkingSpeed);
-	}
-
-	public void AddWalkingSpeed (float addedspeed)
-	{
-		walkingSpeed += addedspeed;
 	}
 
 	public void TakeDamage (float dmg)
