@@ -21,6 +21,7 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 	// Not to Slow down time if doing so
 	public bool draggingSpell = false;
 
+	bool gameStarted = false;
 	bool startRe = false;
 	bool startClicking = false;
 	bool SpellReady = false;
@@ -45,9 +46,14 @@ public class FortifyControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IE
 	{
 		if (startClicking)
 			clickCD += Time.deltaTime;
-		if (!SpellReady) {
+		if (!SpellReady && gameStarted) {
 			rep ();
 		}
+	}
+
+	public void StartGame ()
+	{
+		gameStarted = true;
 	}
 
 	void rep ()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TutorialDesigner;
 
 public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -74,9 +75,12 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 				Destroy (child);
 			}
 			if (minSlot.gameObject.tag != "ProductionSlot") {
-				if (TryMerge (minSlot))
+				if (TryMerge (minSlot)) {
+					// Tutorial Design
+					EventManager.TriggerEvent ("MergeSuccess");
+					// Tutorial Design
 					Destroy (gameObject);
-				else {
+				} else {
 					minSlot.GetChild (0).parent = StartParent;
 					transform.parent = minSlot;
 					StartParent.transform.GetChild (0).localPosition = Vector3.zero;
@@ -97,6 +101,7 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		}
 		// If Dragged to ProductionSlot; Create an Image there
 		if (minSlot.gameObject.tag == "ProductionSlot") {
+			EventManager.TriggerEvent ("DORS");
 			transform.parent = StartParent;
 			transform.localPosition = Vector3.zero;
 			if (!minSlot.gameObject.GetComponent<ReproduceControl> ().Locked) {
@@ -114,6 +119,10 @@ public class PlayerControl : MonoBehaviour, IBeginDragHandler, IDragHandler, IEn
 		towerBeingDragged = null;
 		GameManager.GM.draggingTower = null;
 		draggedOver = null;
+		//Tutorial Designer
+		if (GameManager.GM.Slots [22].transform.childCount > 0) {
+			EventManager.TriggerEvent ("TowerInPlace");
+		}
 	}
 
 	void createTankChain ()

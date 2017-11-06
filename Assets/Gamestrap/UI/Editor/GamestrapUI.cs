@@ -592,6 +592,10 @@ namespace Gamestrap
                 GameObject[] list = GameObject.FindGameObjectsWithTag(set.tag);
                 foreach (GameObject go in list)
                 {
+					Selectable selectable = go.GetComponent<Selectable>();
+					if (selectable) {
+						SetColorBlock(selectable, set);
+					}
                     recursiveLevel = 0;
                     AssignColorsToSelection(go, set);
                 }
@@ -690,7 +694,7 @@ namespace Gamestrap
 
         public void GetSceneColors()
         {
-#if UNITY_4_6 || UNITY_5_0 || UNITY_5_1 || UNITY_5_2
+#if UNITY_4_6 || UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3
             foreach (var root in GamestrapUIHelper.GetSceneGameObjectRoots())
 #else
             foreach (var root in UnityEngine.SceneManagement.SceneManager.GetActiveScene().GetRootGameObjects())

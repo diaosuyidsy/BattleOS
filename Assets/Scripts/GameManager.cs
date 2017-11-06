@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TutorialDesigner;
 
 public class GameManager : MonoBehaviour
 {
@@ -67,6 +68,19 @@ public class GameManager : MonoBehaviour
 		AddCoin (startCoin);
 		PlayerDesignNumberStrs = TowerAndEnemyNum.text.Split ("\n" [0]);
 		PlayerHealthText.text = PlayerHealth.ToString ();
+	}
+
+	public void StartGame ()
+	{
+		EventManager.TriggerEvent ("GameStarted");
+		if (GameObject.Find ("TutorialSystem").GetComponent<SavePoint> ().IsTutorialDone ()) {
+			LevelControl.LC.StartGame ();
+			FortifyControl.FC.StartGame ();
+			GetComponent<UIManager> ().StartGame ();
+		} else {
+			GetComponent<UIManager> ().StartTutorial ();
+		}
+
 	}
 
 	public bool hasEnoughCoin (int tryToSpend)

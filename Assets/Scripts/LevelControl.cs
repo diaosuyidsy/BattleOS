@@ -56,7 +56,7 @@ public class LevelControl : MonoBehaviour
 		LC = this;
 	}
 
-	void Start ()
+	public void StartGame ()
 	{
 		StartCoroutine (StartSpawn ());
 	}
@@ -83,9 +83,6 @@ public class LevelControl : MonoBehaviour
 	{
 		// First find a occupied spot
 		int randPos = Random.Range (10, 35);
-//		while (GameManager.GM.Slots [randPos].transform.childCount < 1) {
-//			randPos = Random.Range (10, 35);
-//		}
 		while (!GameManager.GM.Slots [randPos].activeSelf) {
 			randPos = Random.Range (10, 35);
 		}
@@ -96,7 +93,7 @@ public class LevelControl : MonoBehaviour
 		int randSpawnPos = Random.Range (0, 5);
 		GameObject missile = (GameObject)Instantiate (missilePrefab, showerSpawns [randSpawnPos].position, Quaternion.identity);
 		missile.GetComponent<MissileControl> ().SetTarget (GameManager.GM.Slots [randPos], 100f);
-		Destroy (lockDown);
+		Destroy (lockDown, 0.5f);
 	}
 
 	IEnumerator multipleShower (int amount)
@@ -114,16 +111,17 @@ public class LevelControl : MonoBehaviour
 //			int rand = 1;
 			if (rand == 0) {
 				StartCoroutine (multipleShower (10));
-				yield return new WaitForSeconds (60f);
+				yield return new WaitForSeconds (65f);
 			} else {
 				StartCoroutine (singleAggregate ());
-				yield return new WaitForSeconds (15f);
+				yield return new WaitForSeconds (20f);
 			}
 		}
 	}
 
 	IEnumerator StartSpawn ()
 	{
+		yield return new WaitForSeconds (3f);
 		StartCoroutine (singleSpawn (1f));
 
 		yield return new WaitForSeconds (10f);
@@ -329,4 +327,14 @@ public class LevelControl : MonoBehaviour
 		go.SetActive (true);
 	}
 
+	// Tutorial Design
+	public void SpawnFirstEnemy ()
+	{
+		StartCoroutine (singleSpawn (0f));
+	}
+
+	public void SpawnMoreEnemies ()
+	{
+		multipleSpawns (3, 6f, 0, 4);
+	}
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TutorialDesigner;
 
 public class EnemyControl : MonoBehaviour
 {
@@ -247,6 +248,8 @@ public class EnemyControl : MonoBehaviour
 		if (Health <= 0f) {
 			Instantiate (DeathSplatter, transform.position, Quaternion.identity);
 			GameManager.GM.onScore (EnemyLevel);
+			// Tutorial Design, defeat first enemy
+			EventManager.TriggerEvent ("FED");
 			Destroy (gameObject);
 		}
 	}

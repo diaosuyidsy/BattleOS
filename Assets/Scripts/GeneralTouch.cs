@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TutorialDesigner;
 
 public class GeneralTouch : MonoBehaviour
 {
@@ -31,6 +32,7 @@ public class GeneralTouch : MonoBehaviour
 				fp = Input.mousePosition;
 			}
 		} else if (Input.GetMouseButtonUp (0)) { //check if the finger is removed from the screen
+			EventManager.TriggerEvent ("ClickAnywhere");
 			lp = Input.mousePosition;  //last touch position. Ommitted if you use list
 
 			//Check if drag distance is greater than 20% of the screen height

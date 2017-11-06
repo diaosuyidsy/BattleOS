@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TutorialDesigner;
 
 public class ReproduceControl : MonoBehaviour
 {
@@ -45,6 +46,9 @@ public class ReproduceControl : MonoBehaviour
 			pTime = 0f;
 			// Produce a tower if no tower in front
 			if (SlotInFront.transform.childCount == 0) {
+				//Tutorial Design
+				EventManager.TriggerEvent ("reproducesuccess");
+				//Tutorial Design End
 				GameObject newTower = (GameObject)Instantiate (ReproductionTarget, SlotInFront.transform);
 				TowerControl TC = newTower.GetComponent<TowerControl > ();
 				TC.HealthBar.GetComponent<SpriteRenderer> ().sprite = GreenBar;
