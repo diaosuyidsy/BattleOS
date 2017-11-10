@@ -49,7 +49,7 @@ public class GameManager : MonoBehaviour
 	public string[] myNumFix;
 
 	private int score;
-	private int PlayerHealth = 2;
+	private int PlayerHealth = 1;
 	private int slotNum = 0;
 
 	void Awake ()
@@ -59,6 +59,7 @@ public class GameManager : MonoBehaviour
 
 	void Start ()
 	{
+//		PlayerPrefs.DeleteAll ();
 		slotNum = 0;
 		foreach (GameObject pl in ProductionLocks) {
 			pl.GetComponentInChildren<Text> ().text = UnlockNextSlotCoin [slotNum].ToString ();
@@ -262,7 +263,7 @@ public class GameManager : MonoBehaviour
 	public void HarmPlayer ()
 	{
 		PlayerHealth--;
-		PlayerHealthText.text = PlayerHealth.ToString ();
+//		PlayerHealthText.text = PlayerHealth.ToString ();
 		if (PlayerHealth <= 0)
 			GameOver ();
 	}

@@ -100,7 +100,7 @@ public class LevelControl : MonoBehaviour
 	{
 		for (int i = 0; i < amount; i++) {
 			StartCoroutine (singleShower ());
-			yield return new WaitForSeconds (4f);
+			yield return new WaitForSeconds (5.2f);
 		}
 	}
 
@@ -228,10 +228,13 @@ public class LevelControl : MonoBehaviour
 		int level = epochToEnemyLevelNew ();
 		// If epoch bigger than 85, 10% chances strange things might come in
 		Random.InitState (System.Environment.TickCount);
-		float rand = Random.Range (0, 1);
-		if (rand < 0.1f && epoch > 86) {
+		float rand = Random.Range (0f, 1f);
+		Debug.Log ("Rand between normal: " + rand);
+		if (rand < 0.05f && epoch > 86) {
 			// Then we spawn strange things
+			Random.InitState (System.Environment.TickCount);
 			int ran = Random.Range (0, 2);
+			Debug.Log ("Rand between plane and small zombie: " + ran);
 			if (ran == 0) {
 				// Spawn Small Zombie
 				int randomIndex = Random.Range (0, SmallEnemySpawns.Length);

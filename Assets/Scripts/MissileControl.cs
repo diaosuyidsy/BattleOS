@@ -56,22 +56,11 @@ public class MissileControl : MonoBehaviour
 		// Also check if any enemy nearby
 		Collider2D[] colliders = Physics2D.OverlapCircleAll (target.transform.position, 0.8f);
 		foreach (Collider2D co in colliders) {
-			if (co.tag == "Enemy")
-				co.gameObject.SendMessage ("TakeDamage", co.gameObject.GetComponent<EnemyControl> ().maxHealth * 2);
+			if (co.gameObject != null && co.tag == "Enemy")
+				Destroy (co.gameObject);
 		}
-		LevelControl.LC.startDisable (target, 3f);
-		LevelControl.LC.startDebris (target.transform, 3f);
+		LevelControl.LC.startDisable (target, 1.5f);
+		LevelControl.LC.startDebris (target.transform, 1.5f);
 		Destroy (gameObject);
 	}
-	//	void OnTriggerEnter2D (Collider2D other)
-	//	{
-	//		if (other.gameObject == target) {
-	////			other.gameObject.SendMessage ("TakeDamage", attackdmg);
-	//			if (target.transform.childCount > 0)
-	//				Destroy (target.transform.GetChild (0).gameObject);
-	//			LevelControl.LC.startDisable (target, 3f);
-	//			LevelControl.LC.startDebris (target.transform, 3f);
-	//			Destroy (gameObject);
-	//		}
-	//	}
 }

@@ -235,9 +235,6 @@ public class SmallEnemyControl : MonoBehaviour
 		StartCoroutine ("flashRed");
 		Instantiate (HitEffect, transform.position, Quaternion.Euler (new Vector3 (-90f, 0f, 0f)));
 		if (Health <= 0f) {
-			GameObject popupCoin = (GameObject)Instantiate (PopupCoinprefab, Camera.main.WorldToScreenPoint (transform.position), Quaternion.identity, GameObject.Find ("MainCanvas").transform);
-			popupCoin.GetComponent<PopupCoin> ().setText (Coins);
-			GameManager.GM.AddCoin (Coins);
 			Destroy (gameObject);
 		}
 	}
